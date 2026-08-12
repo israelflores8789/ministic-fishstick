@@ -29,11 +29,11 @@ export class SQLiteVectorStore implements IVectorStore {
     }
 
     this.db = new Database(this.dbPath)
-    this.db.exec('PRAGMA journal_mode = WAL;')
-    this.db.exec('PRAGMA busy_timeout = 5000;')
-    this.db.exec('PRAGMA synchronous = NORMAL;')
+    this.db.run('PRAGMA journal_mode = WAL;')
+    this.db.run('PRAGMA busy_timeout = 5000;')
+    this.db.run('PRAGMA synchronous = NORMAL;')
 
-    this.db.exec(`
+    this.db.run(`
 			CREATE TABLE IF NOT EXISTS points (
 				id TEXT PRIMARY KEY,
 				file_path TEXT NOT NULL,

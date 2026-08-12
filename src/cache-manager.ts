@@ -27,9 +27,9 @@ export class CacheManager implements ICacheManager {
    */
   async initialize(): Promise<void> {
     this.db = new Database(this.dbPath)
-    this.db.exec('PRAGMA journal_mode = WAL;')
-    this.db.exec('PRAGMA busy_timeout = 5000;')
-    this.db.exec(`
+    this.db.run('PRAGMA journal_mode = WAL;')
+    this.db.run('PRAGMA busy_timeout = 5000;')
+    this.db.run(`
 			CREATE TABLE IF NOT EXISTS file_cache (
 				file_path TEXT PRIMARY KEY,
 				hash TEXT NOT NULL,
@@ -53,7 +53,7 @@ export class CacheManager implements ICacheManager {
    */
   async clearCacheFile(): Promise<void> {
     if (this.db) {
-      this.db.exec('DELETE FROM file_cache;')
+      this.db.run('DELETE FROM file_cache;')
     }
     this.fileHashes.clear()
   }
