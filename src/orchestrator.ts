@@ -264,7 +264,7 @@ export class CodeIndexOrchestrator {
   public async clearIndexData(): Promise<void> {
     this._isProcessing = true
     try {
-      await this.stopWatcher()
+      this.stopWatcher()
       await this.vectorStore.deleteCollection()
       await this.cacheManager.clearCacheFile()
       if (this.stateManager.state !== 'Error') {

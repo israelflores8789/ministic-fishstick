@@ -30,58 +30,59 @@ export class CodeIndexServiceFactory {
     const config = this.configManager.getConfig()
     const provider = config.embedder.provider
 
-    if (provider === 'openai') {
-      const apiKey = config.embedder.apiKey || process.env.OPENAI_API_KEY
-      if (!apiKey) {
-        throw new Error(
-          'OpenAI API key missing. Set OPENAI_API_KEY or configure in .fishstick.json'
+    switch (provider) {
+      case 'openai':
+        const apiKey = config.embedder.apiKey || process.env.OPENAI_API_KEY
+        if (!apiKey) {
+          throw new Error(
+            'OpenAI API key missing. Set OPENAI_API_KEY or configure in .fishstick.json'
+          )
+        }
+        return new OpenAiEmbedder({
+          openAiNativeApiKey: apiKey,
+          openAiEmbeddingModelId: config.embedder.modelId || 'text-embedding-3-small',
+        })
+      case 'ollama':
+        return new CodeIndexOllamaEmbedder({
+          ollamaBaseUrl: config.embedder.baseUrl || 'http://localhost:11434',
+          ollamaModelId: config.embedder.modelId || 'nomic-embed-text',
+        })
+      case 'openai-compatible':
+        if (!config.embedder.baseUrl || !config.embedder.apiKey) {
+          throw new Error('OpenAI compatible baseUrl and apiKey required.')
+        }
+        return new OpenAICompatibleEmbedder(
+          config.embedder.baseUrl,
+          config.embedder.apiKey,
+          config.embedder.modelId
         )
-      }
-      return new OpenAiEmbedder({
-        openAiNativeApiKey: apiKey,
-        openAiEmbeddingModelId: config.embedder.modelId || 'text-embedding-3-small',
-      })
-    } else if (provider === 'ollama') {
-      return new CodeIndexOllamaEmbedder({
-        ollamaBaseUrl: config.embedder.baseUrl || 'http://localhost:11434',
-        ollamaModelId: config.embedder.modelId || 'nomic-embed-text',
-      })
-    } else if (provider === 'openai-compatible') {
-      if (!config.embedder.baseUrl || !config.embedder.apiKey) {
-        throw new Error('OpenAI compatible baseUrl and apiKey required.')
-      }
-      return new OpenAICompatibleEmbedder(
-        config.embedder.baseUrl,
-        config.embedder.apiKey,
-        config.embedder.modelId
-      )
-    } else if (provider === 'gemini') {
-      if (!config.embedder.apiKey) throw new Error('Gemini API key required.')
-      return new GeminiEmbedder(config.embedder.apiKey, config.embedder.modelId)
-    } else if (provider === 'mistral') {
-      if (!config.embedder.apiKey) throw new Error('Mistral API key required.')
-      return new MistralEmbedder(config.embedder.apiKey, config.embedder.modelId)
-    } else if (provider === 'vercel-ai-gateway') {
-      if (!config.embedder.apiKey) throw new Error('Vercel AI Gateway API key required.')
-      return new VercelAiGatewayEmbedder(config.embedder.apiKey, config.embedder.modelId)
-    } else if (provider === 'bedrock') {
-      if (!config.embedder.region) throw new Error('Bedrock AWS region required.')
-      return new BedrockEmbedder(
-        config.embedder.region,
-        config.embedder.profile,
-        config.embedder.modelId
-      )
-    } else if (provider === 'openrouter') {
-      if (!config.embedder.apiKey) throw new Error('OpenRouter API key required.')
-      return new OpenRouterEmbedder(
-        config.embedder.apiKey,
-        config.embedder.modelId,
-        undefined,
-        config.embedder.specificProvider
-      )
+      case 'gemini':
+        if (!config.embedder.apiKey) throw new Error('Gemini API key required.')
+        return new GeminiEmbedder(config.embedder.apiKey, config.embedder.modelId)
+      case 'mistral':
+        if (!config.embedder.apiKey) throw new Error('Mistral API key required.')
+        return new MistralEmbedder(config.embedder.apiKey, config.embedder.modelId)
+      case 'vercel-ai-gateway':
+        if (!config.embedder.apiKey) throw new Error('Vercel AI Gateway API key required.')
+        return new VercelAiGatewayEmbedder(config.embedder.apiKey, config.embedder.modelId)
+      case 'bedrock':
+        if (!config.embedder.region) throw new Error('Bedrock AWS region required.')
+        return new BedrockEmbedder(
+          config.embedder.region,
+          config.embedder.profile,
+          config.embedder.modelId
+        )
+      case 'openrouter':
+        if (!config.embedder.apiKey) throw new Error('OpenRouter API key required.')
+        return new OpenRouterEmbedder(
+          config.embedder.apiKey,
+          config.embedder.modelId,
+          undefined,
+          config.embedder.specificProvider
+        )
+      default:
+        throw new Error(`Unsupported embedder provider: ${provider}`)
     }
-
-    throw new Error(`Unsupported embedder provider: ${provider}`)
   }
 
   public async validateEmbedder(embedder: IEmbedder): Promise<{ valid: boolean; error?: string }> {

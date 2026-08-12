@@ -15,7 +15,7 @@ export class CacheManager implements ICacheManager {
     private workspacePath: string,
     cacheDir?: string
   ) {
-    const targetDir = cacheDir || path.join(workspacePath, '.fishstick')
+    const targetDir = cacheDir || path.join(this.workspacePath, '.fishstick')
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true })
     }
@@ -28,6 +28,7 @@ export class CacheManager implements ICacheManager {
   async initialize(): Promise<void> {
     this.db = new Database(this.dbPath)
     this.db.exec('PRAGMA journal_mode = WAL;')
+    this.db.exec('PRAGMA busy_timeout = 5000;')
     this.db.exec(`
 			CREATE TABLE IF NOT EXISTS file_cache (
 				file_path TEXT PRIMARY KEY,
@@ -78,7 +79,7 @@ export class CacheManager implements ICacheManager {
 				ON CONFLICT(file_path) DO UPDATE SET
 					hash = excluded.hash,
 					updated_at = excluded.updated_at;
-			`
+			  `
         )
         .run({
           $filePath: filePath,
