@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { createMcpServer } from './mcp/server'
 import { CodeIndexManager } from './manager'
 import { logger } from './logger'

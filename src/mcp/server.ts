@@ -1,4 +1,4 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { McpServer } from '@modelcontextprotocol/server'
 import { SearchToolInputSchema, handleSearchTool } from './tools/search'
 import { StartIndexingToolInputSchema, handleStartIndexingTool } from './tools/index'
 import { StatusToolInputSchema, handleStatusTool } from './tools/status'
@@ -11,38 +11,48 @@ export function createMcpServer(): McpServer {
     version: '0.1.0',
   })
 
-  server.tool(
+  server.registerTool(
     'code_index_search',
-    'Perform semantic vector search over the indexed codebase',
-    SearchToolInputSchema.shape,
+    {
+      description: 'Perform semantic vector search over the indexed codebase',
+      inputSchema: SearchToolInputSchema,
+    },
     async (args) => handleSearchTool(args)
   )
 
-  server.tool(
+  server.registerTool(
     'code_index_start',
-    'Start workspace scanning and file watching for code indexing',
-    StartIndexingToolInputSchema.shape,
+    {
+      description: 'Start workspace scanning and file watching for code indexing',
+      inputSchema: StartIndexingToolInputSchema,
+    },
     async (args) => handleStartIndexingTool(args)
   )
 
-  server.tool(
+  server.registerTool(
     'code_index_status',
-    'Check indexing state, statistics, and file watcher progress',
-    StatusToolInputSchema.shape,
+    {
+      description: 'Check indexing state, statistics, and file watcher progress',
+      inputSchema: StatusToolInputSchema,
+    },
     async (args) => handleStatusTool(args)
   )
 
-  server.tool(
+  server.registerTool(
     'code_index_clear',
-    'Clear index database and local cache for a workspace',
-    ClearToolInputSchema.shape,
+    {
+      description: 'Clear index database and local cache for a workspace',
+      inputSchema: ClearToolInputSchema,
+    },
     async (args) => handleClearTool(args)
   )
 
-  server.tool(
+  server.registerTool(
     'code_index_configure',
-    'Dynamically update embedding provider or vector store settings',
-    ConfigureToolInputSchema.shape,
+    {
+      description: 'Dynamically update embedding provider or vector store settings',
+      inputSchema: ConfigureToolInputSchema,
+    },
     async (args) => handleConfigureTool(args)
   )
 
