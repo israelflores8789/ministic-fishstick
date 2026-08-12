@@ -2,6 +2,9 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createMcpServer } from './mcp/server'
 import { CodeIndexManager } from './manager'
+import { logger } from './logger'
+
+const log = logger('')
 
 async function main() {
   const server = createMcpServer()
@@ -12,10 +15,10 @@ async function main() {
   await initialManager.initialize()
 
   await server.connect(transport)
-  console.error('[ministic-fishstick] MCP Server running on stdio')
+  log.error('MCP Server running on stdio')
 }
 
 main().catch((err) => {
-  console.error('[ministic-fishstick] Fatal server error:', err)
+  log.error('Fatal server error:', err)
   process.exit(1)
 })

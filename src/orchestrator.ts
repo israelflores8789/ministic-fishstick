@@ -6,6 +6,9 @@ import { DirectoryScanner } from './processors'
 import { CacheManager } from './cache-manager'
 import { TelemetryService, TelemetryEventName } from './shared/telemetry-shim'
 import { t } from './shared/i18n-shim'
+import { logger } from './logger'
+
+const log = logger('CodeIndexOrchestrator')
 
 export class CodeIndexOrchestrator {
   private _fileWatcherSubscriptions: Array<{ dispose: () => void }> = []
@@ -62,12 +65,12 @@ export class CodeIndexOrchestrator {
         ),
         this.fileWatcher.onDidFinishBatchProcessing((summary: BatchProcessingSummary) => {
           if (summary.batchError) {
-            console.error(`[CodeIndexOrchestrator] Batch processing failed:`, summary.batchError)
+            log.error('Batch processing failed:', summary.batchError)
           }
         }),
       ]
     } catch (error) {
-      console.error('[CodeIndexOrchestrator] Failed to start file watcher:', error)
+      log.error('Failed to start file watcher:', error)
       TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
         error: error instanceof Error ? error.message : String(error),
         location: '_startWatcher',
@@ -83,9 +86,7 @@ export class CodeIndexOrchestrator {
         this.stateManager.state !== 'Error' &&
         this.stateManager.state !== 'Indexed')
     ) {
-      console.warn(
-        `[CodeIndexOrchestrator] Start rejected: Already processing or in state ${this.stateManager.state}.`
-      )
+      log.warn(`Start rejected: Already processing or in state ${this.stateManager.state}.`)
       return
     }
 
@@ -133,9 +134,7 @@ export class CodeIndexOrchestrator {
         const result = await this.scanner.scanDirectory(
           this.workspacePath,
           (batchError: Error) => {
-            console.error(
-              `[CodeIndexOrchestrator] Error during incremental scan batch: ${batchError.message}`
-            )
+            log.error(`Error during incremental scan batch: ${batchError.message}`)
             batchErrors.push(batchError)
           },
           handleBlocksIndexed,
@@ -184,9 +183,7 @@ export class CodeIndexOrchestrator {
         const result = await this.scanner.scanDirectory(
           this.workspacePath,
           (batchError: Error) => {
-            console.error(
-              `[CodeIndexOrchestrator] Error during initial scan batch: ${batchError.message}`
-            )
+            log.error(`Error during initial scan batch: ${batchError.message}`)
             batchErrors.push(batchError)
           },
           handleBlocksIndexed,
@@ -211,14 +208,14 @@ export class CodeIndexOrchestrator {
       }
     } catch (error: any) {
       if (error?.name === 'AbortError' || signal.aborted) {
-        console.log('[CodeIndexOrchestrator] Indexing aborted by user.')
+        log.warn('Indexing aborted by user.')
         await this.cacheManager.flush()
         this.stopWatcher()
         this.stateManager.setSystemState('Standby', 'Indexing stopped.')
         return
       }
 
-      console.error('[CodeIndexOrchestrator] Error during indexing:', error)
+      log.error('Error during indexing:', error)
       TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
         error: error instanceof Error ? error.message : String(error),
         location: 'startIndexing',
@@ -228,7 +225,7 @@ export class CodeIndexOrchestrator {
         try {
           await this.vectorStore.clearCollection()
         } catch (cleanupError) {
-          console.error('[CodeIndexOrchestrator] Failed to clean up after error:', cleanupError)
+          log.error('Failed to clean up after error:', cleanupError)
         }
         await this.cacheManager.clearCacheFile()
       }

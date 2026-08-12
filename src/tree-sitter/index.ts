@@ -5,6 +5,9 @@ import { parseMarkdown } from './markdownParser'
 import { FishIgnoreController } from '../ignore/fish-ignore'
 import { QueryCapture } from 'web-tree-sitter'
 import { isNonStructuralExtension } from '../shared/fallback-extensions'
+import { logger } from '../logger'
+
+const log = logger('TreeSitter')
 
 const DEFAULT_MIN_COMPONENT_LINES_VALUE = 4
 let currentMinComponentLines = DEFAULT_MIN_COMPONENT_LINES_VALUE
@@ -219,7 +222,7 @@ async function parseFile(
     const lines = fileContent.split('\n')
     return processCaptures(captures, lines, extLang)
   } catch (error) {
-    console.log(`Error parsing file: ${error}\n`)
+    log.warn(`Error parsing file: ${error}`)
     return null
   }
 }

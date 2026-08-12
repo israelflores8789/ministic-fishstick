@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import dotenv from 'dotenv'
+import { logger } from '../logger'
 import {
   FishstickConfig,
   FishstickConfigSchema,
@@ -9,6 +10,8 @@ import {
   VectorStoreProvider,
   DeepPartial,
 } from './schema'
+
+const log = logger('ConfigManager')
 
 export class CodeIndexConfigManager {
   private workspacePath: string
@@ -71,7 +74,7 @@ export class CodeIndexConfigManager {
         const content = fs.readFileSync(globalConfigFile, 'utf8')
         globalConfig = JSON.parse(content)
       } catch (err) {
-        console.error('[ConfigManager] Error reading global config:', err)
+        log.error('Error reading global config:', err)
       }
     }
 
@@ -82,7 +85,7 @@ export class CodeIndexConfigManager {
         const content = fs.readFileSync(workspaceConfigFile, 'utf8')
         workspaceConfig = JSON.parse(content)
       } catch (err) {
-        console.error('[ConfigManager] Error reading workspace config:', err)
+        log.error('Error reading workspace config:', err)
       }
     }
 

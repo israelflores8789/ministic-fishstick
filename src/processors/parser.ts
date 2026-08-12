@@ -14,6 +14,9 @@ import {
 } from '../constants'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import { sanitizeErrorMessage } from '../shared/validation-helpers'
+import { logger } from '../logger'
+
+const log = logger('FileParser')
 
 /**
  * Implementation of the code parser interface
@@ -57,7 +60,7 @@ export class CodeParser implements ICodeParser {
         content = await readFile(filePath, 'utf8')
         fileHash = this.createFileHash(content)
       } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error)
+        log.error(`Error reading file ${filePath}:`, error)
         TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
           error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
           stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
@@ -121,7 +124,7 @@ export class CodeParser implements ICodeParser {
         try {
           await pendingLoad
         } catch (error) {
-          console.error(`Error in pending parser load for ${filePath}:`, error)
+          log.error(`Error in pending parser load for ${filePath}:`, error)
           TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
             error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
             stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
@@ -138,7 +141,7 @@ export class CodeParser implements ICodeParser {
             this.loadedParsers = { ...this.loadedParsers, ...newParsers }
           }
         } catch (error) {
-          console.error(`Error loading language parser for ${filePath}:`, error)
+          log.error(`Error loading language parser for ${filePath}:`, error)
           TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
             error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
             stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
@@ -153,7 +156,7 @@ export class CodeParser implements ICodeParser {
 
     const language = this.loadedParsers[ext]
     if (!language) {
-      console.warn(`No parser available for file extension: ${ext}`)
+      log.warn(`No parser available for file extension: ${ext}`)
       return []
     }
 

@@ -5,6 +5,9 @@ import { IVectorStore } from './interfaces/vector-store'
 import { CodeIndexConfigManager } from './config/config-manager'
 import { CodeIndexStateManager } from './state-manager'
 import { TelemetryService, TelemetryEventName } from './shared/telemetry-shim'
+import { logger } from './logger'
+
+const log = logger('CodeIndexSearchService')
 
 export class CodeIndexSearchService {
   constructor(
@@ -44,7 +47,7 @@ export class CodeIndexSearchService {
 
       return await this.vectorStore.search(vector, normalizedPrefix, minScore, maxResults)
     } catch (error) {
-      console.error('[CodeIndexSearchService] Error during search:', error)
+      log.error('Error during search:', error)
       this.stateManager.setSystemState('Error', `Search failed: ${(error as Error).message}`)
 
       TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {

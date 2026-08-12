@@ -3,6 +3,9 @@ import fs from 'fs/promises'
 import fsSync from 'fs'
 import ignore, { Ignore } from 'ignore'
 import chokidar, { FSWatcher } from 'chokidar'
+import { logger } from '../logger'
+
+const log = logger('FishIgnoreController')
 
 /**
  * Controls file access and indexing by enforcing ignore patterns from both .gitignore and .fishignore.
@@ -40,7 +43,7 @@ export class FishIgnoreController {
 
     const reload = () => {
       this.loadIgnoreFiles().catch((err) => {
-        console.error('[FishIgnoreController] Error reloading ignore files:', err)
+        log.error('Error reloading ignore files:', err)
       })
     }
 
@@ -76,7 +79,7 @@ export class FishIgnoreController {
         this.fishIgnoreContent = undefined
       }
     } catch (error) {
-      console.error('[FishIgnoreController] Unexpected error loading ignore files:', error)
+      log.error('Unexpected error loading ignore files:', error)
     }
   }
 
