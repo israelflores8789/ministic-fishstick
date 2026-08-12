@@ -7,14 +7,9 @@
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": [
-    "AI",
-    "Programming Languages"
-  ],
+  "categories": ["AI", "Programming Languages"],
   "main": "./out/extension.js",
-  "activationEvents": [
-    "onStartupFinished"
-  ],
+  "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
       {
@@ -29,10 +24,7 @@
     "mcpServers": {
       "fishstick": {
         "command": "bun",
-        "args": [
-          "run",
-          "${workspaceFolder}/node_modules/ministic-fishstick/src/index.ts"
-        ],
+        "args": ["run", "${workspaceFolder}/node_modules/ministic-fishstick/src/index.ts"],
         "env": {
           "VECTOR_STORE_PROVIDER": "sqlite"
         }

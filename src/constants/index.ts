@@ -9,7 +9,7 @@ export const DEFAULT_SEARCH_MIN_SCORE = 0.3
 export const DEFAULT_MAX_SEARCH_RESULTS = 20
 
 /** File Watcher */
-export const QDRANT_CODE_BLOCK_NAMESPACE = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+export const QDRANT_CODE_BLOCK_NAMESPACE = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 export const MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024 // 1MB
 
 /** Directory Scanner */

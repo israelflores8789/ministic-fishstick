@@ -1,0 +1,34 @@
+# Ignore all files except TypeScript/Javascript (.ts/.js) files.
+
+# Configuration & Data
+*.yaml
+*.yml
+*.toml
+*.xml
+pnpm-lock.yaml
+
+# Documentation & Text
+*.md
+*.txt
+LICENSE
+
+# Lock files & Environment
+*.lock
+*.example
+.env*
+yarn.lock
+package-lock.json
+
+# Tooling & Hidden files
+.gitignore
+.prettierignore
+.github/
+.vscode/
+.idea/
+dist/
+buid/
+out/
+.next/
+
+# Scripts (non-TypeScript/Javascript)
+*.cjs
