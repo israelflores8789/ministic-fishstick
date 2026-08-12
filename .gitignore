@@ -80,6 +80,14 @@ typings/
 # dotenv environment variables file
 .env
 .env.test
+.env.local
+
+# Fishstick local cache and runtime index database
+*.sqlite
+*.sqlite-journal
+.fishstick.json
+.fishstick/
+
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
