@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Ministic Fishstick VS Code Extension activated')
+  vscode.window.showInformationMessage('Ministic Fishstick VS Code Extension activated')
 
   // Register VS Code LM Tool for GitHub Copilot Agent integration
   if ('lm' in vscode && typeof (vscode as any).lm.registerTool === 'function') {

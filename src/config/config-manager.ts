@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import dotenv from 'dotenv'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 import {
   FishstickConfig,
   FishstickConfigSchema,
@@ -12,7 +12,7 @@ import {
 } from './schema'
 import { getDefaultModelId } from '../shared/embeddingModels'
 
-const log = logger('ConfigManager')
+const logger = getAppLogger(['config'])
 
 export class CodeIndexConfigManager {
   private workspacePath: string
@@ -76,8 +76,11 @@ export class CodeIndexConfigManager {
       try {
         const content = fs.readFileSync(globalConfigFile, 'utf8')
         globalConfig = JSON.parse(content)
-      } catch (err) {
-        log.error('Error reading global config:', err)
+      } catch (error) {
+        logger.error('[{location}] Error reading global config: {error}', {
+          error,
+          location: 'ConfigManager.loadConfiguration',
+        })
       }
     }
 
@@ -87,8 +90,11 @@ export class CodeIndexConfigManager {
       try {
         const content = fs.readFileSync(workspaceConfigFile, 'utf8')
         workspaceConfig = JSON.parse(content)
-      } catch (err) {
-        log.error('Error reading workspace config:', err)
+      } catch (error) {
+        logger.error('[{location}] Error reading workspace config: {error}', {
+          error,
+          location: 'ConfigManager.loadConfiguration',
+        })
       }
     }
 

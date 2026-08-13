@@ -2,9 +2,10 @@
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { createMcpServer } from './mcp/server'
 import { CodeIndexManager } from './manager'
-import { logger } from './logger'
+import { getAppLogger, getFatalLogger } from './logger'
 
-const log = logger('')
+const logger = getAppLogger()
+const fatalLogger = getFatalLogger()
 
 async function main() {
   const server = createMcpServer()
@@ -15,10 +16,10 @@ async function main() {
   await initialManager.initialize()
 
   await server.connect(transport)
-  log.error('MCP Server running on stdio')
+  logger.info('MCP Server running on stdio')
 }
 
-main().catch((err) => {
-  log.error('Fatal server error:', err)
+main().catch((error) => {
+  fatalLogger.fatal('Fatal server error: {error}', { error })
   process.exit(1)
 })

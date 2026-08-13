@@ -1,8 +1,8 @@
 import { z } from 'zod/v4'
 import { CodeIndexManager } from '../../manager'
-import { logger } from '../../logger'
+import { getAppLogger } from '../../logger'
 
-const log = logger('MCP')
+const logger = getAppLogger(['mcp'])
 
 export const StartIndexingToolInputSchema = z.object({
   workspacePath: z
@@ -15,8 +15,11 @@ export async function handleStartIndexingTool(input: z.infer<typeof StartIndexin
   const manager = CodeIndexManager.getInstance(input.workspacePath)
   await manager.initialize()
   // Background non-blocking trigger
-  manager.startIndexing().catch((err) => {
-    log.error('Start indexing error:', err)
+  manager.startIndexing().catch((error) => {
+    logger.error('[{location}] Start indexing error: {error}', {
+      error,
+      location: 'MCP:handleStartIndexingTool',
+    })
   })
 
   const status = manager.getCurrentStatus()

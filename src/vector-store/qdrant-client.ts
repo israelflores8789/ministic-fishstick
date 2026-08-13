@@ -10,9 +10,9 @@ import {
   QDRANT_CODE_BLOCK_NAMESPACE,
 } from '../constants'
 import { t } from '../shared/i18n-shim'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 
-const log = logger('QdrantVectorStore')
+const logger = getAppLogger(['qdrant'])
 
 /**
  * Qdrant implementation of the vector store interface
@@ -144,9 +144,13 @@ export class QdrantVectorStore implements IVectorStore {
       return collectionInfo
     } catch (error: unknown) {
       if (error instanceof Error) {
-        log.warn(
-          `Warning during getCollectionInfo for "${this.collectionName}". Collection may not exist or another error occurred:`,
-          error.message
+        logger.warn(
+          '[{location}] Warning during getCollectionInfo for "{collectionName}". Collection may not exist or another error occurred: {error}',
+          {
+            error: error.message,
+            collectionName: this.collectionName,
+            location: 'QdrantVectorStore.getCollectionInfo',
+          }
         )
       }
       return null
@@ -208,9 +212,13 @@ export class QdrantVectorStore implements IVectorStore {
       return created
     } catch (error: any) {
       const errorMessage = error?.message || error
-      log.error(
-        `Failed to initialize Qdrant collection "${this.collectionName}":`,
-        errorMessage
+      logger.error(
+        '[{location}] Failed to initialize Qdrant collection "{collectionName}": {errorMessage}',
+        {
+          errorMessage,
+          collectionName: this.collectionName,
+          location: 'QdrantVectorStore.initialize',
+        }
       )
 
       // If this is already a vector dimension mismatch error (identified by cause), re-throw it as-is
@@ -234,8 +242,14 @@ export class QdrantVectorStore implements IVectorStore {
    * @returns Promise resolving to boolean indicating if a new collection was created
    */
   private async _recreateCollectionWithNewDimension(existingVectorSize: number): Promise<boolean> {
-    log.warn(
-      `Collection ${this.collectionName} exists with vector size ${existingVectorSize}, but expected ${this.vectorSize}. Recreating collection.`
+    logger.warn(
+      '[{location}] Collection "{collectionName}" exists with vector size {existingVectorSize}, but expected {vectorSize}. Recreating collection.',
+      {
+        collectionName: this.collectionName,
+        existingVectorSize,
+        vectorSize: this.vectorSize,
+        location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+      }
     )
 
     let deletionSucceeded = false
@@ -243,10 +257,16 @@ export class QdrantVectorStore implements IVectorStore {
 
     try {
       // Step 1: Attempt to delete the existing collection
-      log.warn(`Deleting existing collection ${this.collectionName}...`)
+      logger.info('[{location}] Deleting existing collection "{collectionName}"...', {
+        collectionName: this.collectionName,
+        location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+      })
       await this.client.deleteCollection(this.collectionName)
       deletionSucceeded = true
-      log.warn(`Successfully deleted collection ${this.collectionName}`)
+      logger.info('[{location}] Successfully deleted collection "{collectionName}"', {
+        collectionName: this.collectionName,
+        location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+      })
 
       // Step 2: Wait a brief moment to ensure deletion is processed
       await new Promise((resolve) => setTimeout(resolve, 100))
@@ -258,8 +278,13 @@ export class QdrantVectorStore implements IVectorStore {
       }
 
       // Step 4: Create the new collection with correct dimensions
-      log.warn(
-        `Creating new collection ${this.collectionName} with vector size ${this.vectorSize}...`
+      logger.warn(
+        '[{location}] Creating new collection "{collectionName}" with vector size {vectorSize}...',
+        {
+          collectionName: this.collectionName,
+          vectorSize: this.vectorSize,
+          location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+        }
       )
       recreationAttempted = true
       await this.client.createCollection(this.collectionName, {
@@ -274,7 +299,10 @@ export class QdrantVectorStore implements IVectorStore {
           on_disk: true,
         },
       })
-      log.warn(`Successfully created new collection ${this.collectionName}`)
+      logger.warn('[{location}] Successfully created new collection "{collectionName}"', {
+        collectionName: this.collectionName,
+        location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+      })
       return true
     } catch (recreationError) {
       const errorMessage =
@@ -290,8 +318,15 @@ export class QdrantVectorStore implements IVectorStore {
         contextualErrorMessage = `Deleted existing collection but failed to create new collection with vector size ${this.vectorSize}. ${errorMessage}`
       }
 
-      log.error(
-        `CRITICAL: Failed to recreate collection ${this.collectionName} for dimension change (${existingVectorSize} -> ${this.vectorSize}). ${contextualErrorMessage}`
+      logger.error(
+        '[{location}] CRITICAL: Failed to recreate collection "{collectionName}" for dimension change ({existingVectorSize} -> {vectorSize}). {errorMessage}',
+        {
+          collectionName: this.collectionName,
+          existingVectorSize,
+          vectorSize: this.vectorSize,
+          errorMessage: contextualErrorMessage,
+          location: 'QdrantVectorStore._recreateCollectionWithNewDimension',
+        }
       )
 
       // Create a comprehensive error message for the user
@@ -320,9 +355,13 @@ export class QdrantVectorStore implements IVectorStore {
     } catch (indexError: any) {
       const errorMessage = (indexError?.message || '').toLowerCase()
       if (!errorMessage.includes('already exists')) {
-        log.warn(
-          `Could not create payload index for type on ${this.collectionName}. Details:`,
-          indexError?.message || indexError
+        logger.warn(
+          '[{location}] Could not create payload index for type on "{collectionName}". Details: {errorMessage}',
+          {
+            collectionName: this.collectionName,
+            errorMessage: indexError?.message || indexError,
+            location: 'QdrantVectorStore._createPayloadIndexes',
+          }
         )
       }
     }
@@ -337,9 +376,14 @@ export class QdrantVectorStore implements IVectorStore {
       } catch (indexError: any) {
         const errorMessage = (indexError?.message || '').toLowerCase()
         if (!errorMessage.includes('already exists')) {
-          log.warn(
-            `Could not create payload index for pathSegments.${i} on ${this.collectionName}. Details:`,
-            indexError?.message || indexError
+          logger.warn(
+            '[{location}] Could not create payload index for pathSegments.{index} on "{collectionName}". Details: {errorMessage}',
+            {
+              collectionName: this.collectionName,
+              errorMessage: indexError?.message || indexError,
+              index: i,
+              location: 'QdrantVectorStore._createPayloadIndexes',
+            }
           )
         }
       }
@@ -384,7 +428,10 @@ export class QdrantVectorStore implements IVectorStore {
         wait: true,
       })
     } catch (error) {
-      log.error('Failed to upsert points:', error)
+      logger.error('[{location}] Failed to upsert points: {error}', {
+        error,
+        location: 'QdrantVectorStore.upsertPoints',
+      })
       throw error
     }
   }
@@ -477,7 +524,10 @@ export class QdrantVectorStore implements IVectorStore {
 
       return filteredPoints as VectorStoreSearchResult[]
     } catch (error) {
-      log.error('Failed to search points:', error)
+      logger.error('[{location}] Failed to search points: {error}', {
+        error,
+        location: 'QdrantVectorStore.searchPoints',
+      })
       throw error
     }
   }
@@ -499,8 +549,12 @@ export class QdrantVectorStore implements IVectorStore {
       // First check if the collection exists
       const collectionExists = await this.collectionExists()
       if (!collectionExists) {
-        log.warn(
-          `Skipping deletion - collection "${this.collectionName}" does not exist`
+        logger.warn(
+          '[{location}] Skipping deletion - collection "{collectionName}" does not exist',
+          {
+            collectionName: this.collectionName,
+            location: 'QdrantVectorStore.deletePointsByMultipleFilePaths',
+          }
         )
         return
       }
@@ -544,7 +598,7 @@ export class QdrantVectorStore implements IVectorStore {
       const errorStatus = error?.status || error?.response?.status || error?.statusCode
       const errorDetails = error?.response?.data || error?.data || ''
 
-      log.error(`Failed to delete points by file paths:`, {
+      logger.error('[{location}] Failed to delete points by file paths: {error}', {
         error: errorMessage,
         status: errorStatus,
         details: errorDetails,
@@ -566,10 +620,11 @@ export class QdrantVectorStore implements IVectorStore {
         await this.client.deleteCollection(this.collectionName)
       }
     } catch (error) {
-      log.error(
-        `Failed to delete collection ${this.collectionName}:`,
-        error
-      )
+      logger.error('[{location}] Failed to delete collection {collectionName}: {error}', {
+        collectionName: this.collectionName,
+        error,
+        location: 'QdrantVectorStore.deleteCollection',
+      })
       throw error // Re-throw to allow calling code to handle it
     }
   }
@@ -586,7 +641,11 @@ export class QdrantVectorStore implements IVectorStore {
         wait: true,
       })
     } catch (error) {
-      log.error('Failed to clear collection:', error)
+      logger.error('[{location}] Failed to clear collection {collectionName}: {error}', {
+        collectionName: this.collectionName,
+        error,
+        location: 'QdrantVectorStore.clearCollection',
+      })
       throw error
     }
   }
@@ -630,12 +689,18 @@ export class QdrantVectorStore implements IVectorStore {
 
       // Backward compatibility: No marker exists (old index or pre-marker version)
       // Fall back to old logic - assume complete if collection has points
-      log.warn(
-        'No indexing metadata marker found. Using backward compatibility mode (checking points_count > 0).'
+      logger.warn(
+        '[{location}] No indexing metadata marker found. Using backward compatibility mode (checking points_count > 0).',
+        {
+          location: 'QdrantVectorStore.hasIndexedData',
+        }
       )
       return pointsCount > 0
     } catch (error) {
-      log.warn('Failed to check if collection has data:', error)
+      logger.warn('[{location}] Failed to check if collection has data: {error}', {
+        error,
+        location: 'QdrantVectorStore.hasIndexedData',
+      })
       return false
     }
   }
@@ -664,9 +729,14 @@ export class QdrantVectorStore implements IVectorStore {
         ],
         wait: true,
       })
-      log.warn('Marked indexing as complete')
+      logger.info('[{location}] Marked indexing as complete', {
+        location: 'QdrantVectorStore.markIndexingComplete',
+      })
     } catch (error) {
-      log.error('Failed to mark indexing as complete:', error)
+      logger.error('[{location}] Failed to mark indexing as complete: {error}', {
+        error,
+        location: 'QdrantVectorStore.markIndexingComplete',
+      })
       throw error
     }
   }
@@ -695,9 +765,14 @@ export class QdrantVectorStore implements IVectorStore {
         ],
         wait: true,
       })
-      log.warn('Marked indexing as incomplete (in progress)')
+      logger.info('[{location}] Marked indexing as incomplete (in progress)', {
+        location: 'QdrantVectorStore.markIndexingIncomplete',
+      })
     } catch (error) {
-      log.error('Failed to mark indexing as incomplete:', error)
+      logger.error('[{location}] Failed to mark indexing as incomplete: {error}', {
+        error,
+        location: 'QdrantVectorStore.markIndexingIncomplete',
+      })
       throw error
     }
   }

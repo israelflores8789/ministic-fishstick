@@ -1,8 +1,9 @@
 import * as path from 'path'
 import { Parser as ParserT, Language as LanguageT, Query as QueryT } from 'web-tree-sitter'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 
-const log = logger('LanguageParser')
+const logger = getAppLogger(['tree-sitter'])
+
 import {
   javascriptQuery,
   typescriptQuery,
@@ -58,9 +59,11 @@ async function loadLanguage(langName: string, sourceDirectory?: string) {
     const { Language } = require('web-tree-sitter')
     return await Language.load(wasmPath)
   } catch (error) {
-    log.error(
-      `Error loading language: ${wasmPath}: ${error instanceof Error ? error.message : error}`
-    )
+    logger.error('[{location}] Error loading language: {wasmPath}: {error}', {
+      error,
+      wasmPath,
+      location: 'tree-sitter:loadLanguage',
+    })
     throw error
   }
 }
@@ -101,7 +104,10 @@ export async function loadRequiredLanguageParsers(
       await Parser.init()
       isParserInitialized = true
     } catch (error) {
-      log.error(`Error initializing parser: ${error instanceof Error ? error.message : error}`)
+      logger.error('[{location}] Error initializing parser: {error}', {
+        error,
+        location: 'tree-sitter:loadRequiredLanguageParsers',
+      })
       throw error
     }
   }

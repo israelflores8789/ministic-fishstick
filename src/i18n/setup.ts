@@ -1,8 +1,8 @@
 import i18next from 'i18next'
 import { translations } from './locales.generated'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 
-const log = logger('i18n:setup')
+const logger = getAppLogger(['i18n'])
 
 /**
  * Translations are statically imported via locales.generated.ts,
@@ -29,7 +29,7 @@ i18next.init({
 })
 
 if (!isTestEnv) {
-  log.warn(`Loaded translations for languages: ${Object.keys(translations).join(', ')}`)
+  logger.info`Loaded translations for languages: ${Object.keys(translations).join(', ')}`
 }
 
 export default i18next
