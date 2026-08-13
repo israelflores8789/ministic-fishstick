@@ -8,12 +8,13 @@ import {
 } from '../constants'
 import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { t } from '../shared/i18n-shim'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getAppLogger } from '../logger'
 
+const logger = getAppLogger(['embedder', 'openai'])
 
 /**
  * OpenAi embedder implementation.
- * 
+ *
  * Supported Models:
  * - text-embedding-3-small: (dimension: 1536)
  * - text-embedding-3-large: (dimension: 3072)
@@ -104,9 +105,9 @@ export class OpenAiEmbedder implements IEmbedder {
           continue
         }
 
-        TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-          error: error instanceof Error ? error.message : String(error),
-          location: 'OpenAiEmbedder:_embedBatchWithRetries',
+        logger.error('[{location}] Error creating embeddings: {error}', {
+          error,
+          location: 'OpenAiEmbedder._embedBatchWithRetries',
         })
 
         throw error
@@ -127,6 +128,10 @@ export class OpenAiEmbedder implements IEmbedder {
       }
       return { valid: true }
     } catch (error: any) {
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'OpenAiEmbedder.validateConfiguration',
+      })
       return { valid: false, error: error?.message || String(error) }
     }
   }

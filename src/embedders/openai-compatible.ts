@@ -7,7 +7,9 @@ import {
   INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from '../constants'
 import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getAppLogger } from '../logger'
+
+const logger = getAppLogger(['embedder', 'openai-compatible'])
 
 /**
  * OpenAI-Compatible embedder impelemntation that uses the OpenAI API client to generate embeddings.
@@ -101,9 +103,9 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
           await new Promise((res) => setTimeout(res, INITIAL_DELAY_MS * Math.pow(2, attempts)))
           continue
         }
-        TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-          error: error instanceof Error ? error.message : String(error),
-          location: 'OpenAICompatibleEmbedder:_embedBatchWithRetries',
+        logger.error('[{location}] Error creating embeddings: {error}', {
+          error,
+          location: 'OpenAICompatibleEmbedder._embedBatchWithRetries',
         })
         throw error
       }
@@ -122,6 +124,10 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
       }
       return { valid: true }
     } catch (error: any) {
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'OpenAICompatibleEmbedder.validateConfiguration',
+      })
       return { valid: false, error: error?.message || String(error) }
     }
   }

@@ -2,9 +2,11 @@ import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedroc
 import { fromIni, fromNodeProviderChain } from '@aws-sdk/credential-providers'
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces'
 import { MAX_BATCH_RETRIES as MAX_RETRIES } from '../constants'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import { getDefaultModelId } from '../shared/embeddingModels'
 import { name, version } from '../../package.json'
+import { getAppLogger } from '../logger'
+
+const logger = getAppLogger(['embedder', 'bedrock'])
 
 /**
  * Bedrock embedder implementation.
@@ -60,9 +62,9 @@ export class BedrockEmbedder implements IEmbedder {
           embeddings.push(responseBody.embedding)
         }
       } catch (error) {
-        TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-          error: error instanceof Error ? error.message : String(error),
-          location: 'BedrockEmbedder:createEmbeddings',
+        logger.error('[{location}] Error creating embeddings: {error}', {
+          error,
+          location: 'BedrockEmbedder.createEmbeddings',
         })
         throw error
       }
@@ -76,6 +78,10 @@ export class BedrockEmbedder implements IEmbedder {
       await this.createEmbeddings(['test'])
       return { valid: true }
     } catch (error: any) {
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'BedrockEmbedder.validateConfiguration',
+      })
       return { valid: false, error: error?.message || String(error) }
     }
   }

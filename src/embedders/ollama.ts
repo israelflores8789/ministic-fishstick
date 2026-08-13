@@ -1,7 +1,9 @@
 import { EmbedderInfo, EmbeddingResponse, IEmbedder } from '../interfaces'
 import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { MAX_ITEM_TOKENS } from '../constants'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getAppLogger } from '../logger'
+
+const logger = getAppLogger(['embedder', 'ollama'])
 
 const OLLAMA_EMBEDDING_TIMEOUT_MS = 60000
 
@@ -62,9 +64,9 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 
       return { embeddings }
     } catch (error: any) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        location: 'OllamaEmbedder:createEmbeddings',
+      logger.error('[{location}] Error creating embeddings: {error}', {
+        error,
+        location: 'OllamaEmbedder.createEmbeddings',
       })
       throw new Error(`Ollama embedding failed: ${error.message}`)
     }
@@ -79,6 +81,10 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
       }
       return { valid: true }
     } catch (error: any) {
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'OllamaEmbedder.validateConfiguration',
+      })
       return { valid: false, error: error?.message || 'Ollama service unavailable' }
     }
   }

@@ -15,10 +15,10 @@ import pLimit from 'p-limit'
 import { Mutex } from 'async-mutex'
 import { CacheManager } from '../cache-manager'
 import { t } from '../shared/i18n-shim'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 
-const log = logger('DirectoryScanner')
+const logger = getAppLogger(['processor', 'scanner'])
+
 import {
   QDRANT_CODE_BLOCK_NAMESPACE,
   MAX_FILE_SIZE_BYTES,
@@ -188,9 +188,9 @@ export class DirectoryScanner implements IDirectoryScanner {
           if (error instanceof DOMException && error.name === 'AbortError') {
             throw error
           }
-          log.error(`Error processing file ${filePath}:`, error)
-          TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-            error: error instanceof Error ? error.message : String(error),
+          logger.error('[{location}] Error processing file {filePath}: {error}', {
+            error,
+            filePath,
             location: 'scanDirectory:processFile',
           })
           if (onError) {
@@ -253,7 +253,11 @@ export class DirectoryScanner implements IDirectoryScanner {
             await this.vectorStore.deletePointsByFilePath(cachedFilePath)
             this.cacheManager.deleteHash(cachedFilePath)
           } catch (error: any) {
-            log.error(`Failed to delete points for ${cachedFilePath}:`, error)
+            logger.error('[{location}] Failed to delete points for {filePath}: {error}', {
+              error,
+              location: 'scanDirectory:deletePoints',
+              filePath: cachedFilePath,
+            })
           }
         }
       }

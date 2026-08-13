@@ -24,7 +24,6 @@ import {
   generateNormalizedAbsolutePath,
   generateRelativeFilePath,
 } from '../shared/get-relative-path'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import chokidar, { FSWatcher } from 'chokidar'
 import { readFile, stat } from 'fs/promises'
 import { EventEmitter } from 'events'

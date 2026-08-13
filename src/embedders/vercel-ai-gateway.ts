@@ -2,8 +2,10 @@ import { OpenAICompatibleEmbedder } from './openai-compatible'
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces/embedder'
 import { MAX_ITEM_TOKENS } from '../constants'
 import { t } from '../shared/i18n-shim'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import { getDefaultModelId } from '../shared/embeddingModels'
+import { getAppLogger } from '../logger'
+
+const logger = getAppLogger(['embedder', 'vercel-ai-gateway'])
 
 /**
  * Vercel AI Gateway embedder implementation that wraps the OpenAI Compatible embedder
@@ -60,10 +62,9 @@ export class VercelAiGatewayEmbedder implements IEmbedder {
       const modelToUse = model || this.modelId
       return await this.openAICompatibleEmbedder.createEmbeddings(texts, modelToUse)
     } catch (error) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        location: 'VercelAiGatewayEmbedder:createEmbeddings',
+      logger.error('[{location}] Error creating embeddings: {error}', {
+        error,
+        location: 'VercelAiGatewayEmbedder.createEmbeddings',
       })
       throw error
     }
@@ -79,10 +80,9 @@ export class VercelAiGatewayEmbedder implements IEmbedder {
       // The error messages will be specific to Vercel AI Gateway since we're using Vercel's base URL
       return await this.openAICompatibleEmbedder.validateConfiguration()
     } catch (error) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        location: 'VercelAiGatewayEmbedder:validateConfiguration',
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'VercelAiGatewayEmbedder.validateConfiguration',
       })
       throw error
     }

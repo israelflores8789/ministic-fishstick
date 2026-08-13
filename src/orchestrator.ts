@@ -4,11 +4,10 @@ import { CodeIndexStateManager, IndexingState } from './state-manager'
 import { IFileWatcher, IVectorStore, BatchProcessingSummary } from './interfaces'
 import { DirectoryScanner } from './processors'
 import { CacheManager } from './cache-manager'
-import { TelemetryService, TelemetryEventName } from './shared/telemetry-shim'
 import { t } from './shared/i18n-shim'
-import { logger } from './logger'
+import { getAppLogger } from './logger'
 
-const log = logger('CodeIndexOrchestrator')
+const logger = getAppLogger()
 
 export class CodeIndexOrchestrator {
   private _fileWatcherSubscriptions: Array<{ dispose: () => void }> = []
@@ -65,17 +64,16 @@ export class CodeIndexOrchestrator {
         ),
         this.fileWatcher.onDidFinishBatchProcessing((summary: BatchProcessingSummary) => {
           if (summary.batchError) {
-            log.error('Batch processing failed:', summary.batchError)
+            logger.error('Batch processing failed:', summary.batchError)
           }
         }),
       ]
     } catch (error) {
-      log.error('Failed to start file watcher:', error)
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        location: '_startWatcher',
+      logger.error('[{location}] Failed to start file watcher: {error}', {
+        error,
+        location: 'CodeIndexOrchestrator._startWatcher',
       })
-      throw error
+      throw error // FIX: validate that this is the right behavior; i may want to handle this more gracefully
     }
   }
 
@@ -86,7 +84,7 @@ export class CodeIndexOrchestrator {
         this.stateManager.state !== 'Error' &&
         this.stateManager.state !== 'Indexed')
     ) {
-      log.warn(`Start rejected: Already processing or in state ${this.stateManager.state}.`)
+      logger.warn`Start rejected: Already processing or in state ${this.stateManager.state}.`
       return
     }
 
@@ -134,7 +132,10 @@ export class CodeIndexOrchestrator {
         const result = await this.scanner.scanDirectory(
           this.workspacePath,
           (batchError: Error) => {
-            log.error(`Error during incremental scan batch: ${batchError.message}`)
+            logger.error('[{location}] Error during incremental scan batch: {error}', {
+              error: batchError,
+              location: 'CodeIndexOrchestrator.startIndexing',
+            })
             batchErrors.push(batchError)
           },
           handleBlocksIndexed,
@@ -183,7 +184,10 @@ export class CodeIndexOrchestrator {
         const result = await this.scanner.scanDirectory(
           this.workspacePath,
           (batchError: Error) => {
-            log.error(`Error during initial scan batch: ${batchError.message}`)
+            logger.error('[{location}] Error during initial scan batch: {error}', {
+              error: batchError,
+              location: 'CodeIndexOrchestrator.startIndexing',
+            })
             batchErrors.push(batchError)
           },
           handleBlocksIndexed,
@@ -208,24 +212,28 @@ export class CodeIndexOrchestrator {
       }
     } catch (error: any) {
       if (error?.name === 'AbortError' || signal.aborted) {
-        log.warn('Indexing aborted by user.')
+        logger.warn('[{location}] Indexing aborted by user.', {
+          location: 'CodeIndexOrchestrator.startIndexing',
+        })
         await this.cacheManager.flush()
         this.stopWatcher()
         this.stateManager.setSystemState('Standby', 'Indexing stopped.')
         return
       }
 
-      log.error('Error during indexing:', error)
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        location: 'startIndexing',
+      logger.error('[{location}] Error during indexing: {error}', {
+        error: error,
+        location: 'CodeIndexOrchestrator.startIndexing',
       })
 
       if (indexingStarted) {
         try {
           await this.vectorStore.clearCollection()
         } catch (cleanupError) {
-          log.error('Failed to clean up after error:', cleanupError)
+          logger.error('[{location}] Failed to clean up after error: {error}', {
+            error: cleanupError,
+            location: 'CodeIndexOrchestrator.startIndexing',
+          })
         }
         await this.cacheManager.clearCacheFile()
       }

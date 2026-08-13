@@ -2,8 +2,10 @@ import { OpenAICompatibleEmbedder } from './openai-compatible'
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces/embedder'
 import { MAX_ITEM_TOKENS } from '../constants'
 import { t } from '../shared/i18n-shim'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import { getDefaultModelId } from '../shared/embeddingModels'
+import { getAppLogger } from '../logger'
+
+const logger = getAppLogger(['embedder', 'mistral'])
 
 /**
  * Mistral embedder implementation that wraps the OpenAI Compatible embedder
@@ -52,10 +54,9 @@ export class MistralEmbedder implements IEmbedder {
       const modelToUse = model || this.modelId
       return await this.openAICompatibleEmbedder.createEmbeddings(texts, modelToUse)
     } catch (error) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        location: 'MistralEmbedder:createEmbeddings',
+      logger.error('[{location}] Error creating embeddings: {error}', {
+        error,
+        location: 'MistralEmbedder.createEmbeddings',
       })
       throw error
     }
@@ -71,10 +72,9 @@ export class MistralEmbedder implements IEmbedder {
       // The error messages will be specific to Mistral since we're using Mistral's base URL
       return await this.openAICompatibleEmbedder.validateConfiguration()
     } catch (error) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        location: 'MistralEmbedder:validateConfiguration',
+      logger.error('[{location}] Error validating configuration: {error}', {
+        error,
+        location: 'MistralEmbedder.validateConfiguration',
       })
       throw error
     }

@@ -12,11 +12,9 @@ import {
   MIN_CHUNK_REMAINDER_CHARS,
   MAX_CHARS_TOLERANCE_FACTOR,
 } from '../constants'
-import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
-import { sanitizeErrorMessage } from '../shared/validation-helpers'
-import { logger } from '../logger'
+import { getAppLogger } from '../logger'
 
-const log = logger('FileParser')
+const logger = getAppLogger(['processor', 'parser'])
 
 /**
  * Implementation of the code parser interface
@@ -60,11 +58,10 @@ export class CodeParser implements ICodeParser {
         content = await readFile(filePath, 'utf8')
         fileHash = this.createFileHash(content)
       } catch (error) {
-        log.error(`Error reading file ${filePath}:`, error)
-        TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-          error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-          stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
-          location: 'parseFile',
+        logger.error('[{location}] Error reading file {filePath}: {error}', {
+          error,
+          location: 'CodeParser.parseFile',
+          filePath,
         })
         return []
       }
@@ -124,11 +121,10 @@ export class CodeParser implements ICodeParser {
         try {
           await pendingLoad
         } catch (error) {
-          log.error(`Error in pending parser load for ${filePath}:`, error)
-          TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-            error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-            stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
-            location: 'parseContent:loadParser',
+          logger.error('[{location}] Error in pending parser load for {filePath}: {error}', {
+            error,
+            filePath,
+            location: 'CodeParser.parseContent.pendingLoad',
           })
           return []
         }
@@ -141,11 +137,10 @@ export class CodeParser implements ICodeParser {
             this.loadedParsers = { ...this.loadedParsers, ...newParsers }
           }
         } catch (error) {
-          log.error(`Error loading language parser for ${filePath}:`, error)
-          TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-            error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-            stack: error instanceof Error ? sanitizeErrorMessage(error.stack || '') : undefined,
-            location: 'parseContent:loadParser',
+          logger.error('[{location}] Error loading language parser for {filePath}: {error}', {
+            error,
+            filePath,
+            location: 'CodeParser.parseContent.loadParser',
           })
           return []
         } finally {
@@ -156,7 +151,10 @@ export class CodeParser implements ICodeParser {
 
     const language = this.loadedParsers[ext]
     if (!language) {
-      log.warn(`No parser available for file extension: ${ext}`)
+      logger.warn('[{location}] No parser available for file extension: {ext}', {
+        ext,
+        location: 'CodeParser.parseContent',
+      })
       return []
     }
 

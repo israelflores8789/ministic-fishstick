@@ -17,7 +17,9 @@ import { BATCH_SEGMENT_THRESHOLD } from './constants'
 import { getDefaultModelId, getModelDimension } from './shared/embeddingModels'
 import { FishIgnoreController } from './ignore/fish-ignore'
 import { t } from './shared/i18n-shim'
-import { TelemetryService, TelemetryEventName } from './shared/telemetry-shim'
+import { getAppLogger } from './logger'
+
+const logger = getAppLogger()
 
 export class CodeIndexServiceFactory {
   constructor(
@@ -89,9 +91,9 @@ export class CodeIndexServiceFactory {
     try {
       return await embedder.validateConfiguration()
     } catch (error) {
-      TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-        error: error instanceof Error ? error.message : String(error),
-        location: 'validateEmbedder',
+      logger.error('[{location}] Embedder validation failed: {error}', {
+        error,
+        location: 'CodeIndexServiceFactory.validateEmbedder',
       })
       return {
         valid: false,
