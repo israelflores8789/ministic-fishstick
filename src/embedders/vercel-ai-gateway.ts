@@ -3,27 +3,28 @@ import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces/embedd
 import { MAX_ITEM_TOKENS } from '../constants'
 import { t } from '../shared/i18n-shim'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getDefaultModelId } from '../shared/embeddingModels'
 
 /**
  * Vercel AI Gateway embedder implementation that wraps the OpenAI Compatible embedder
  * with configuration for Vercel AI Gateway's embedding API.
  *
  * Supported models:
- * - openai/text-embedding-3-small (dimension: 1536)
- * - openai/text-embedding-3-large (dimension: 3072)
- * - openai/text-embedding-ada-002 (dimension: 1536)
- * - cohere/embed-v4.0 (dimension: 1024)
- * - google/gemini-embedding-001 (dimension: 768)
- * - google/text-embedding-005 (dimension: 768)
- * - google/text-multilingual-embedding-002 (dimension: 768)
- * - amazon/titan-embed-text-v2 (dimension: 1024)
- * - mistral/codestral-embed (dimension: 1536)
- * - mistral/mistral-embed (dimension: 1024)
+ * - openai/text-embedding-3-small: (dimension: 1536)
+ * - openai/text-embedding-3-large: (dimension: 3072)
+ * - openai/text-embedding-ada-002: (dimension: 1536)
+ * - cohere/embed-v4.0: (dimension: 1024)
+ * - google/gemini-embedding-001: (dimension: 3072)
+ * - google/text-embedding-005: (dimension: 768)
+ * - google/text-multilingual-embedding-002: (dimension: 768)
+ * - amazon/titan-embed-text-v2: (dimension: 1024)
+ * - mistral/codestral-embed: (dimension: 1536)
+ * - mistral/mistral-embed: (dimension: 1024)
  */
 export class VercelAiGatewayEmbedder implements IEmbedder {
   private readonly openAICompatibleEmbedder: OpenAICompatibleEmbedder
   private static readonly VERCEL_AI_GATEWAY_BASE_URL = 'https://ai-gateway.vercel.sh/v1'
-  private static readonly DEFAULT_MODEL = 'openai/text-embedding-3-large'
+  private static readonly DEFAULT_MODEL = getDefaultModelId('vercel-ai-gateway')
   private readonly modelId: string
 
   /**

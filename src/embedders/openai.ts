@@ -6,10 +6,19 @@ import {
   MAX_BATCH_RETRIES as MAX_RETRIES,
   INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from '../constants'
-import { getModelQueryPrefix } from '../shared/embeddingModels'
+import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { t } from '../shared/i18n-shim'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 
+
+/**
+ * OpenAi embedder implementation.
+ * 
+ * Supported Models:
+ * - text-embedding-3-small: (dimension: 1536)
+ * - text-embedding-3-large: (dimension: 3072)
+ * - text-embedding-ada-002: (dimension: 1536)
+ */
 export class OpenAiEmbedder implements IEmbedder {
   private embeddingsClient: OpenAI
   private readonly defaultModelId: string
@@ -17,7 +26,7 @@ export class OpenAiEmbedder implements IEmbedder {
   constructor(options: { openAiNativeApiKey?: string; openAiEmbeddingModelId?: string }) {
     const apiKey = options.openAiNativeApiKey || process.env.OPENAI_API_KEY || 'not-provided'
     this.embeddingsClient = new OpenAI({ apiKey })
-    this.defaultModelId = options.openAiEmbeddingModelId || 'text-embedding-3-small'
+    this.defaultModelId = options.openAiEmbeddingModelId || getDefaultModelId('openai')
   }
 
   async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {

@@ -6,16 +6,27 @@ import {
   MAX_BATCH_RETRIES as MAX_RETRIES,
   INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from '../constants'
-import { getModelQueryPrefix } from '../shared/embeddingModels'
+import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 
+/**
+ * OpenAI-Compatible embedder impelemntation that uses the OpenAI API client to generate embeddings.
+ * It supports batching, retrying on rate limits, and validating the configuration.
+ *
+ * Supported models:
+ *
+ * - text-embedding-3-small: (dimension: 1536)
+ * - text-embedding-3-large: (dimension: 3072)
+ * - text-embedding-ada-002: (dimension: 1536)
+ * - nomic-embed-code: (dimension: 3584)
+ */
 export class OpenAICompatibleEmbedder implements IEmbedder {
   private client: OpenAI
   private readonly defaultModelId: string
 
   constructor(baseUrl: string, apiKey: string, modelId?: string) {
     this.client = new OpenAI({ baseURL: baseUrl, apiKey })
-    this.defaultModelId = modelId || 'text-embedding-3-small'
+    this.defaultModelId = modelId || getDefaultModelId('openai-compatible')
   }
 
   async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {

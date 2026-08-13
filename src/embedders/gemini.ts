@@ -3,6 +3,7 @@ import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces/embedd
 import { GEMINI_MAX_ITEM_TOKENS } from '../constants'
 import { t } from '../shared/i18n-shim'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getDefaultModelId } from '../shared/embeddingModels'
 
 /**
  * Gemini embedder implementation that wraps the OpenAI Compatible embedder
@@ -10,6 +11,7 @@ import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
  *
  * Supported models:
  * - gemini-embedding-001 (dimension: 3072)
+ * - gemini-embedding-2-preview (dimension: 3072)
  *
  * Note: text-embedding-004 has been deprecated and is automatically
  * migrated to gemini-embedding-001 for backward compatibility.
@@ -18,11 +20,7 @@ export class GeminiEmbedder implements IEmbedder {
   private readonly openAICompatibleEmbedder: OpenAICompatibleEmbedder
   private static readonly GEMINI_BASE_URL =
     'https://generativelanguage.googleapis.com/v1beta/openai/'
-  private static readonly DEFAULT_MODEL = 'gemini-embedding-001'
-  /**
-   * Deprecated models that are automatically migrated to their replacements.
-   * Users with these models configured will be silently migrated without interruption.
-   */
+  private static readonly DEFAULT_MODEL = getDefaultModelId('gemini')
   private static readonly DEPRECATED_MODEL_MIGRATIONS: Record<string, string> = {
     'text-embedding-004': 'gemini-embedding-001',
   }

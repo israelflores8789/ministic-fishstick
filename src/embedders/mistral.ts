@@ -3,6 +3,7 @@ import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces/embedd
 import { MAX_ITEM_TOKENS } from '../constants'
 import { t } from '../shared/i18n-shim'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getDefaultModelId } from '../shared/embeddingModels'
 
 /**
  * Mistral embedder implementation that wraps the OpenAI Compatible embedder
@@ -10,11 +11,12 @@ import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
  *
  * Supported models:
  * - codestral-embed-2505 (dimension: 1536)
+ * - mistral-embed: (dimension: 1024)
  */
 export class MistralEmbedder implements IEmbedder {
   private readonly openAICompatibleEmbedder: OpenAICompatibleEmbedder
   private static readonly MISTRAL_BASE_URL = 'https://api.mistral.ai/v1'
-  private static readonly DEFAULT_MODEL = 'codestral-embed-2505'
+  private static readonly DEFAULT_MODEL = getDefaultModelId('mistral')
   private readonly modelId: string
 
   /**

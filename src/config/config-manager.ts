@@ -10,6 +10,7 @@ import {
   VectorStoreProvider,
   DeepPartial,
 } from './schema'
+import { getDefaultModelId } from '../shared/embeddingModels'
 
 const log = logger('ConfigManager')
 
@@ -48,7 +49,9 @@ export class CodeIndexConfigManager {
       },
       embedder: {
         provider: (process.env.EMBEDDER_PROVIDER as EmbedderProvider) || 'openai',
-        modelId: process.env.EMBEDDER_MODEL_ID || 'text-embedding-3-small',
+        modelId:
+          process.env.EMBEDDER_MODEL_ID ||
+          getDefaultModelId((process.env.EMBEDDER_PROVIDER as EmbedderProvider) || 'openai'),
         apiKey:
           process.env.OPENAI_API_KEY ||
           process.env.GEMINI_API_KEY ||

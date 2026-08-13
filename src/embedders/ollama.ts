@@ -1,10 +1,23 @@
 import { EmbedderInfo, EmbeddingResponse, IEmbedder } from '../interfaces'
-import { getModelQueryPrefix } from '../shared/embeddingModels'
+import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { MAX_ITEM_TOKENS } from '../constants'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 
 const OLLAMA_EMBEDDING_TIMEOUT_MS = 60000
 
+/**
+ * Ollama Embedder implementation for creating embeddings using the Ollama API.
+ *
+ * Supported models:
+ *
+ * - nomic-embed-text: (dimension: 768)
+ * - nomic-embed-code: (dimension: 3584)
+ * - mxbai-embed-large: (dimension: 1024)
+ * - all-minilm: (dimension: 384)
+ * - qwen3-embedding:0.6b: (dimension: 1024)
+ * - qwen3-embedding:4b: (dimension: 2560)
+ * - qwen3-embedding:8b: (dimension: 4096)
+ */
 export class CodeIndexOllamaEmbedder implements IEmbedder {
   private readonly baseUrl: string
   private readonly defaultModelId: string
@@ -13,7 +26,7 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
     let baseUrl = options.ollamaBaseUrl || 'http://localhost:11434'
     baseUrl = baseUrl.replace(/\/+$/, '')
     this.baseUrl = baseUrl
-    this.defaultModelId = options.ollamaModelId || 'nomic-embed-text:latest'
+    this.defaultModelId = options.ollamaModelId || getDefaultModelId('ollama')
   }
 
   async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {

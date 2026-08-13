@@ -6,9 +6,25 @@ import {
   MAX_BATCH_RETRIES as MAX_RETRIES,
   INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from '../constants'
-import { getModelQueryPrefix } from '../shared/embeddingModels'
+import { getDefaultModelId, getModelQueryPrefix } from '../shared/embeddingModels'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 
+/**
+ * OpenRouter embedder implementation.
+ *
+ * Supported models:
+ * - openai/text-embedding-3-small: (dimension: 1536)
+ * - openai/text-embedding-3-large: (dimension: 3072)
+ * - openai/text-embedding-ada-002: (dimension: 1536)
+ * - google/gemini-embedding-001: (dimension: 3072)
+ * - google/gemini-embedding-2: (dimension: 3072)
+ * - mistralai/mistral-embed-2312: (dimension: 1024)
+ * - mistralai/codestral-embed-2505: (dimension: 1536)
+ * - qwen/qwen3-embedding-0.6b: (dimension: 1024)
+ * - qwen/qwen3-embedding-4b: (dimension: 2560)
+ * - qwen/qwen3-embedding-8b: (dimension: 4096)
+ * - baai/bge-m3: (dimension: 1024)
+ */
 export class OpenRouterEmbedder implements IEmbedder {
   private client: OpenAI
   private readonly defaultModelId: string
@@ -22,7 +38,7 @@ export class OpenRouterEmbedder implements IEmbedder {
         'X-Title': 'ministic-fishstick',
       },
     })
-    this.defaultModelId = modelId || 'openai/text-embedding-3-small'
+    this.defaultModelId = modelId || getDefaultModelId('openrouter')
   }
 
   async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {

@@ -40,12 +40,12 @@ export class CodeIndexServiceFactory {
         }
         return new OpenAiEmbedder({
           openAiNativeApiKey: apiKey,
-          openAiEmbeddingModelId: config.embedder.modelId || 'text-embedding-3-small',
+          openAiEmbeddingModelId: config.embedder.modelId || getDefaultModelId(provider),
         })
       case 'ollama':
         return new CodeIndexOllamaEmbedder({
           ollamaBaseUrl: config.embedder.baseUrl || 'http://localhost:11434',
-          ollamaModelId: config.embedder.modelId || 'nomic-embed-text',
+          ollamaModelId: config.embedder.modelId || getDefaultModelId(provider),
         })
       case 'openai-compatible':
         if (!config.embedder.baseUrl || !config.embedder.apiKey) {
@@ -103,7 +103,7 @@ export class CodeIndexServiceFactory {
   public createVectorStore(): IVectorStore {
     const config = this.configManager.getConfig()
     const provider = config.embedder.provider
-    const defaultModel = getDefaultModelId(provider as any) || 'text-embedding-3-small'
+    const defaultModel = getDefaultModelId(provider as any)
     const modelId = config.embedder.modelId || defaultModel
 
     let vectorSize =

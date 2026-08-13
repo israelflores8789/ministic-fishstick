@@ -2,14 +2,27 @@ import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedroc
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces'
 import { MAX_BATCH_RETRIES as MAX_RETRIES } from '../constants'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
+import { getDefaultModelId } from '../shared/embeddingModels'
 
+/**
+ * Bedrock embedder implementation.
+ *
+ * Supported models:
+ * - amazon.titan-embed-text-v: (dimension: 1536)
+ * - amazon.titan-embed-text-v2:0: (dimension: 1024)
+ * - amazon.titan-embed-image-v1: (dimension: 1024)
+ * - amazon.nova-2-multimodal-embeddings-v1:0: (dimension: 3072)
+ * - cohere.embed-v4:0: (dimension: 1536)
+ * - cohere.embed-english-v3: (dimension: 1024)
+ * - cohere.embed-multilingual-v3: (dimension: 1024)
+ */
 export class BedrockEmbedder implements IEmbedder {
   private bedrockClient: BedrockRuntimeClient
   private readonly defaultModelId: string
 
   constructor(region: string, profile?: string, modelId?: string) {
     this.bedrockClient = new BedrockRuntimeClient({ region })
-    this.defaultModelId = modelId || 'amazon.titan-embed-text-v2:0'
+    this.defaultModelId = modelId || getDefaultModelId('bedrock')
   }
 
   async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {
