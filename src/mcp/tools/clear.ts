@@ -5,7 +5,7 @@ export const ClearToolInputSchema = z.object({
   workspacePath: z
     .string()
     .optional()
-    .describe('Workspace folder path (defaults to current directory)'),
+    .meta({ description: 'Workspace folder path (defaults to current directory)' }),
 })
 
 export async function handleClearTool(input: z.infer<typeof ClearToolInputSchema>) {

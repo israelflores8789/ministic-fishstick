@@ -6,25 +6,29 @@ export const ConfigureToolInputSchema = z.object({
   workspacePath: z
     .string()
     .optional()
-    .describe('Workspace folder path (defaults to current directory)'),
-  embedderProvider: EmbedderProviderSchema.optional().describe(
-    'Embedding provider (openai, ollama, gemini, etc.)'
-  ),
+    .meta({ description: 'Workspace folder path (defaults to current directory)' }),
+  embedderProvider: EmbedderProviderSchema.optional().meta({
+    description: 'Embedding provider (openai, ollama, gemini, etc.)',
+  }),
   embedderModelId: z
     .string()
     .optional()
-    .describe('Embedding model ID (e.g. text-embedding-3-small)'),
-  vectorStoreProvider: VectorStoreProviderSchema.optional().describe(
-    "Vector store provider ('sqlite' or 'qdrant')"
-  ),
-  qdrantUrl: z.string().optional().describe('Qdrant server URL if using qdrant'),
+    .meta({ description: 'Embedding model ID (e.g. text-embedding-3-small)' }),
+  vectorStoreProvider: VectorStoreProviderSchema.optional().meta({
+    description: "Vector store provider ('sqlite' or 'qdrant')",
+  }),
+  qdrantUrl: z.string().optional().meta({ description: 'Qdrant server URL if using qdrant' }),
   minScore: z
     .number()
     .min(0)
     .max(1)
     .optional()
-    .describe('Minimum search similarity score threshold (0.0 - 1.0)'),
-  maxResults: z.number().positive().optional().describe('Maximum search results to return'),
+    .meta({ description: 'Minimum search similarity score threshold (0.0 - 1.0)' }),
+  maxResults: z
+    .number()
+    .positive()
+    .optional()
+    .meta({ description: 'Maximum search results to return' }),
 })
 
 export async function handleConfigureTool(input: z.infer<typeof ConfigureToolInputSchema>) {

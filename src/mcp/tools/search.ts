@@ -2,15 +2,17 @@ import { z } from 'zod/v4'
 import { CodeIndexManager } from '../../manager'
 
 export const SearchToolInputSchema = z.object({
-  query: z.string().describe('Semantic search query or code snippet to search for'),
+  query: z.string().meta({ description: 'Semantic search query or code snippet to search for' }),
   directoryPrefix: z
     .string()
     .optional()
-    .describe("Optional relative directory path to restrict search (e.g. 'src/components')"),
+    .meta({
+      description: "Optional relative directory path to restrict search (e.g. 'src/components')",
+    }),
   workspacePath: z
     .string()
     .optional()
-    .describe('Workspace folder path (defaults to current process directory)'),
+    .meta({ description: 'Workspace folder path (defaults to current process directory)' }),
 })
 
 export async function handleSearchTool(input: z.infer<typeof SearchToolInputSchema>) {

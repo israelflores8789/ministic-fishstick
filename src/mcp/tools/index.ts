@@ -8,7 +8,7 @@ export const StartIndexingToolInputSchema = z.object({
   workspacePath: z
     .string()
     .optional()
-    .describe('Workspace folder path to index (defaults to current directory)'),
+    .meta({ description: 'Workspace folder path to index (defaults to current directory)' }),
 })
 
 export async function handleStartIndexingTool(input: z.infer<typeof StartIndexingToolInputSchema>) {

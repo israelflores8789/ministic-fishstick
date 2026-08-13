@@ -20,31 +20,30 @@ export type VectorStoreProvider = z.infer<typeof VectorStoreProviderSchema>
 export const FishstickConfigSchema = z.object({
   enabled: z.boolean().default(true),
   workspacePath: z.string().optional(),
-  vectorStore: z
-    .object({
-      provider: VectorStoreProviderSchema.default('sqlite'),
-      qdrantUrl: z.string().default('http://localhost:6333'),
-      qdrantApiKey: z.string().optional(),
-    })
-    .default({}),
-  embedder: z
-    .object({
-      provider: EmbedderProviderSchema.default('openai'),
-      modelId: z.string().default('text-embedding-3-small'),
-      modelDimension: z.number().positive().optional(),
-      apiKey: z.string().optional(),
-      baseUrl: z.string().optional(),
-      region: z.string().optional(),
-      profile: z.string().optional(),
-      specificProvider: z.string().optional(),
-    })
-    .default({}),
-  search: z
-    .object({
-      minScore: z.number().min(0).max(1).default(0.3),
-      maxResults: z.number().positive().default(20),
-    })
-    .default({}),
+  vectorStore: z.discriminatedUnion('provider', [
+    z.object({
+      provider: VectorStoreProviderSchema.enum.sqlite,
+    }),
+    z.object({
+      provider: VectorStoreProviderSchema.enum.qdrant,
+      qdrantUrl: z.url().default('http://localhost:6333'),
+      qdrantApiKey: z.string(),
+    }),
+  ]),
+  embedder: z.object({
+    provider: EmbedderProviderSchema.default('openai'),
+    modelId: z.string().default('text-embedding-3-small'),
+    modelDimension: z.number().positive().optional(),
+    apiKey: z.string().optional(),
+    baseUrl: z.string().optional(),
+    region: z.string().optional(),
+    profile: z.string().optional(),
+    specificProvider: z.string().optional(),
+  }),
+  search: z.object({
+    minScore: z.number().min(0).max(1).default(0.3),
+    maxResults: z.number().positive().default(20),
+  }),
 })
 
 export type FishstickConfig = z.infer<typeof FishstickConfigSchema>
