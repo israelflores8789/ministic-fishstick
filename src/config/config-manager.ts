@@ -119,10 +119,10 @@ export class CodeIndexConfigManager {
       return !!embedder.apiKey || !!process.env.OPENAI_API_KEY
     }
     if (embedder.provider === 'ollama') {
-      return !!embedder.baseUrl || true
+      return !!embedder.baseUrl || true // FIX
     }
     if (embedder.provider === 'semble') {
-      return true
+      return true // FIX
     }
     return !!embedder.apiKey
   }
@@ -132,7 +132,7 @@ export class CodeIndexConfigManager {
   }
 
   public get vectorStoreProvider(): VectorStoreProvider {
-    return this.currentConfig.vectorStore.provider
+    return this.currentConfig.vectorStore.provider // FIX
   }
 
   public get currentModelId(): string {
