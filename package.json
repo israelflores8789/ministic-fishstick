@@ -1,6 +1,8 @@
 {
   "name": "ministic-fishstick",
+  "author": "Israel Flores-Arbolay <israelflores8789@gmail.com>",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "description": "Minimal MCP server for semantic code indexing and vector search powered by Bun",
   "main": "src/index.ts",
   "module": "src/index.ts",
@@ -17,6 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.750.0",
+    "@aws-sdk/credential-providers": "^3.1109.0",
     "@google/genai": "^0.2.0",
     "@mistralai/mistralai": "^1.5.0",
     "@modelcontextprotocol/server": "^2.0.0",

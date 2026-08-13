@@ -1,8 +1,10 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
+import { fromIni, fromNodeProviderChain } from '@aws-sdk/credential-providers'
 import { IEmbedder, EmbeddingResponse, EmbedderInfo } from '../interfaces'
 import { MAX_BATCH_RETRIES as MAX_RETRIES } from '../constants'
 import { TelemetryService, TelemetryEventName } from '../shared/telemetry-shim'
 import { getDefaultModelId } from '../shared/embeddingModels'
+import { name, version } from '../../package.json'
 
 /**
  * Bedrock embedder implementation.
@@ -20,8 +22,22 @@ export class BedrockEmbedder implements IEmbedder {
   private bedrockClient: BedrockRuntimeClient
   private readonly defaultModelId: string
 
-  constructor(region: string, profile?: string, modelId?: string) {
-    this.bedrockClient = new BedrockRuntimeClient({ region })
+  constructor(
+    private readonly region: string,
+    private readonly profile?: string,
+    modelId?: string
+  ) {
+    if (!region) {
+      throw new Error('Region is required for AWS Bedrock embedder')
+    }
+
+    const credentials = this.profile ? fromIni({ profile: this.profile }) : fromNodeProviderChain()
+
+    this.bedrockClient = new BedrockRuntimeClient({
+      userAgentAppId: `${name}#${version}`,
+      region: this.region,
+      credentials,
+    })
     this.defaultModelId = modelId || getDefaultModelId('bedrock')
   }
 
