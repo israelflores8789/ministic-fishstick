@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 import { createMcpServer } from '../src/mcp/server'
-import { CodeIndexManager } from '../src/manager'
+import { CodeIndexManager } from '../src/core/manager'
 import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'

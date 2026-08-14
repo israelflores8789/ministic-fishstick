@@ -1,10 +1,10 @@
 import * as path from 'path'
-import { VectorStoreSearchResult } from './interfaces'
-import { IEmbedder } from './interfaces/embedder'
-import { IVectorStore } from './interfaces/vector-store'
-import { CodeIndexConfigManager } from './config/config-manager'
+import { VectorStoreSearchResult } from '../interfaces'
+import { IEmbedder } from '../interfaces/embedder'
+import { IVectorStore } from '../interfaces/vector-store'
+import { CodeIndexConfigManager } from '../config/config-manager'
 import { CodeIndexStateManager } from './state-manager'
-import { getAppLogger } from './logger'
+import { getAppLogger } from '../logger'
 
 const logger = getAppLogger()
 

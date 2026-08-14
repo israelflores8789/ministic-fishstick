@@ -1,5 +1,5 @@
 import { z } from 'zod/v4'
-import { CodeIndexManager } from '../../manager'
+import { CodeIndexManager } from '../../core/manager'
 import { getAppLogger } from '../../logger'
 
 const logger = getAppLogger(['mcp'])

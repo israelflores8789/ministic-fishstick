@@ -1,5 +1,5 @@
 import { z } from 'zod/v4'
-import { CodeIndexManager } from '../../manager'
+import { CodeIndexManager } from '../../core/manager'
 
 export const StatusToolInputSchema = z.object({
   workspacePath: z

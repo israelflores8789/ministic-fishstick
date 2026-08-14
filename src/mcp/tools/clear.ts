@@ -1,5 +1,5 @@
 import { z } from 'zod/v4'
-import { CodeIndexManager } from '../../manager'
+import { CodeIndexManager } from '../../core/manager'
 
 export const ClearToolInputSchema = z.object({
   workspacePath: z

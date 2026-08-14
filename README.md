@@ -1,5 +1,9 @@
 # ministic-fishstick
 
+<p align="center">
+  <img src="media/ministic-fishstick-github-readme-banner-1000px.png" alt="Banner" width=650 />
+</p>
+
 > Minimal, high-performance Model Context Protocol (MCP) server for semantic code indexing and vector search powered by **Bun** and **TypeScript**.
 
 `ministic-fishstick` extracts code-indexing capabilities into a standalone MCP server that can be used directly with AI CLI agents (OpenCode, Claude Desktop, Cursor) as well as GitHub Copilot Agents in VS Code.

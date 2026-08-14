@@ -1,11 +1,11 @@
 import * as path from 'path'
-import { CodeIndexConfigManager } from './config/config-manager'
+import { CodeIndexConfigManager } from '../config/config-manager'
 import { CodeIndexStateManager, IndexingState } from './state-manager'
-import { IFileWatcher, IVectorStore, BatchProcessingSummary } from './interfaces'
-import { DirectoryScanner } from './processors'
+import { IFileWatcher, IVectorStore, BatchProcessingSummary } from '../interfaces'
+import { DirectoryScanner } from '../processors'
 import { CacheManager } from './cache-manager'
-import { t } from './shared/i18n-shim'
-import { getAppLogger } from './logger'
+import { t } from '../shared/i18n-shim'
+import { getAppLogger } from '../logger'
 
 const logger = getAppLogger()
 

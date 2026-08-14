@@ -13,7 +13,7 @@ import { createHash } from 'crypto'
 import { v5 as uuidv5 } from 'uuid'
 import pLimit from 'p-limit'
 import { Mutex } from 'async-mutex'
-import { CacheManager } from '../cache-manager'
+import { CacheManager } from '../core/cache-manager'
 import { t } from '../shared/i18n-shim'
 import { getAppLogger } from '../logger'
 

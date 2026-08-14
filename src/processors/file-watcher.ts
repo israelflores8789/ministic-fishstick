@@ -19,7 +19,7 @@ import {
   BatchProcessingSummary,
 } from '../interfaces'
 import { codeParser } from './parser'
-import { CacheManager } from '../cache-manager'
+import { CacheManager } from '../core/cache-manager'
 import {
   generateNormalizedAbsolutePath,
   generateRelativeFilePath,

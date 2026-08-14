@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite'
 import path from 'path'
 import fs from 'fs'
-import { ICacheManager } from './interfaces/cache'
+import { ICacheManager } from '../interfaces/cache'
 
 /**
  * SQLite implementation of CacheManager for ministic-fishstick using bun:sqlite

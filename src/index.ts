@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { createMcpServer } from './mcp/server'
-import { CodeIndexManager } from './manager'
+import { CodeIndexManager } from './core/manager'
 import { getAppLogger, getFatalLogger } from './logger'
 
 const logger = getAppLogger()

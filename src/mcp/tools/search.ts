@@ -1,14 +1,11 @@
 import { z } from 'zod/v4'
-import { CodeIndexManager } from '../../manager'
+import { CodeIndexManager } from '../../core/manager'
 
 export const SearchToolInputSchema = z.object({
   query: z.string().meta({ description: 'Semantic search query or code snippet to search for' }),
-  directoryPrefix: z
-    .string()
-    .optional()
-    .meta({
-      description: "Optional relative directory path to restrict search (e.g. 'src/components')",
-    }),
+  directoryPrefix: z.string().optional().meta({
+    description: "Optional relative directory path to restrict search (e.g. 'src/components')",
+  }),
   workspacePath: z
     .string()
     .optional()
