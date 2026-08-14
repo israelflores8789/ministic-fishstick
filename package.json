@@ -18,33 +18,33 @@
     "build": "bun build ./src/index.ts --outdir ./dist --target bun"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.750.0",
-    "@aws-sdk/credential-providers": "^3.1109.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1111.0",
+    "@aws-sdk/credential-providers": "^3.1111.0",
     "@google/genai": "^0.2.0",
     "@logtape/file": "^2.3.1",
     "@logtape/logtape": "^2.3.1",
-    "@mistralai/mistralai": "^1.5.0",
+    "@mistralai/mistralai": "^1.15.1",
     "@modelcontextprotocol/server": "^2.0.0",
-    "@qdrant/js-client-rest": "^1.14.0",
+    "@qdrant/js-client-rest": "^1.19.0",
     "async-mutex": "^0.5.0",
-    "chokidar": "^4.0.1",
-    "dotenv": "^16.4.7",
+    "chokidar": "^4.0.3",
+    "dotenv": "^16.6.1",
     "i18next": "^26.3.6",
-    "ignore": "^7.0.3",
-    "ollama": "^0.5.14",
-    "openai": "^4.86.1",
+    "ignore": "^7.0.6",
+    "ollama": "^0.5.18",
+    "openai": "^4.104.0",
     "p-limit": "^6.2.0",
     "serialize-error": "^12.0.0",
     "tree-sitter-wasms": "^0.1.13",
-    "uuid": "^11.1.0",
-    "web-tree-sitter": "^0.25.6",
+    "uuid": "^11.1.1",
+    "web-tree-sitter": "^0.26.12",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^22.13.0",
+    "@types/node": "^22.20.1",
     "@types/uuid": "^10.0.0",
     "prettier": "^3.9.6",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   }
 }

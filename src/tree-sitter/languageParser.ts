@@ -25,6 +25,7 @@ import {
   solidityQuery,
   tomlQuery,
   vueQuery,
+  leanQuery,
   luaQuery,
   systemrdlQuery,
   tlaPlusQuery,
@@ -212,6 +213,10 @@ export async function loadRequiredLanguageParsers(
       case 'vue':
         language = await loadLanguage('vue', sourceDirectory)
         query = new Query(language, vueQuery)
+        break
+      case 'lean':
+        language = await loadLanguage('lean', sourceDirectory)
+        query = new Query(language, leanQuery)
         break
       case 'lua':
         language = await loadLanguage('lua', sourceDirectory)

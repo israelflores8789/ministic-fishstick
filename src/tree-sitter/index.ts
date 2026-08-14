@@ -33,6 +33,7 @@ const extensions = [
   'rdl',
   'ml',
   'mli',
+  'lean',
   'lua',
   'scala',
   'toml',

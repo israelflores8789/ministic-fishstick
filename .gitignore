@@ -122,3 +122,6 @@ dist
 
 # i18n support
 src/i18n/locales.generated.ts
+
+# Tree-Sitter
+node-kinds*.csv
