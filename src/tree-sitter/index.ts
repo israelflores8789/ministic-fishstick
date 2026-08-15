@@ -23,6 +23,7 @@ const extensions = [
   'ex',
   'exs',
   'el',
+  'hs',
   'html',
   'htm',
   'md',

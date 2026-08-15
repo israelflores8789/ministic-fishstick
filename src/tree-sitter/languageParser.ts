@@ -17,6 +17,7 @@ import {
   rubyQuery,
   javaQuery,
   phpQuery,
+  haskellQuery,
   htmlQuery,
   swiftQuery,
   kotlinQuery,
@@ -52,7 +53,7 @@ async function loadLanguage(langName: string, sourceDirectory?: string) {
       // Resolve from installed tree-sitter-wasms package
       wasmPath = require.resolve(`tree-sitter-wasms/out/tree-sitter-${langName}.wasm`)
     } catch {
-      wasmPath = path.join(__dirname, `tree-sitter-${langName}.wasm`)
+      wasmPath = path.join(__dirname, 'wasm', `tree-sitter-${langName}.wasm`)
     }
   }
 
@@ -188,6 +189,10 @@ export async function loadRequiredLanguageParsers(
       case 'css':
         language = await loadLanguage('css', sourceDirectory)
         query = new Query(language, cssQuery)
+        break
+      case 'hs':
+        language = await loadLanguage('haskell', sourceDirectory)
+        query = new Query(language, haskellQuery)
         break
       case 'html':
         language = await loadLanguage('html', sourceDirectory)
