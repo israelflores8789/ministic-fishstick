@@ -1,44 +1,51 @@
-export const scalaQuery = `
-; Classes
-(class_definition
-  name: (identifier) @name.definition) @definition.class
+export default `
+; Adapted directly from tree-sitter-scala's own queries/tags.scm, renamed
+; to this project's @name.definition.* convention. Reference captures
+; (call/interface/class references) omitted, matching how Lean and Haskell
+; were handled — this MCP indexes definitions, not call sites.
 
-(class_definition
-  (modifiers)
-  name: (identifier) @name.definition) @definition.class
+(package_clause
+  name: (package_identifier) @name) @name.definition.package
 
-; Objects
-(object_definition
-  name: (identifier) @name.definition) @definition.object
-
-(object_definition
-  name: (identifier) @name.definition
-  extend: (extends_clause)?) @definition.object
-
-; Traits
 (trait_definition
-  name: (identifier) @name.definition) @definition.trait
+  name: (identifier) @name) @name.definition.interface
 
-; Methods
+(enum_definition
+  name: (identifier) @name) @name.definition.enum
+
+(simple_enum_case
+  name: (identifier) @name) @name.definition.class
+
+(full_enum_case
+  name: (identifier) @name) @name.definition.class
+
+(class_definition
+  name: (identifier) @name) @name.definition.class
+
+(object_definition
+  name: (identifier) @name) @name.definition.object
+
 (function_definition
-  name: (identifier) @name.definition) @definition.method
+  name: (identifier) @name) @name.definition.function
 
-; Values and Variables
 (val_definition
-  pattern: (identifier) @name.definition) @definition.variable
+  pattern: (identifier) @name) @name.definition.variable
+
+(given_definition
+  name: (identifier) @name) @name.definition.variable
 
 (var_definition
-  pattern: (identifier) @name.definition) @definition.variable
+  pattern: (identifier) @name) @name.definition.variable
 
-(val_definition
-  (modifiers)
-  pattern: (identifier) @name.definition) @definition.variable
+(val_declaration
+  name: (identifier) @name) @name.definition.variable
 
-; Types
+(var_declaration
+  name: (identifier) @name) @name.definition.variable
+
 (type_definition
-  name: (type_identifier) @name.definition) @definition.type
+  name: (type_identifier) @name) @name.definition.type
 
-; Package declarations
-(package_clause
-  name: (package_identifier) @name.definition) @definition.namespace
+(class_parameter
+  name: (identifier) @name) @name.definition.property
 `

@@ -2,7 +2,7 @@
  * Extensions that should not be parsed for structural definitions and should
  * instead use line-based fallback chunking where indexing is supported.
  */
-export const fallbackExtensions = ['.txt', '.vb', '.scala', '.swift'] as const
+export const fallbackExtensions = ['.txt', '.vb', '.swift'] as const
 
 /**
  * Fallback extensions that do not have a structural parser. Scala and Swift

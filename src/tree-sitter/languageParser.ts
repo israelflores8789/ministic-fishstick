@@ -28,6 +28,7 @@ import {
   vueQuery,
   leanQuery,
   luaQuery,
+  scalaQuery,
   systemrdlQuery,
   tlaPlusQuery,
   zigQuery,
@@ -205,7 +206,7 @@ export async function loadRequiredLanguageParsers(
         break
       case 'scala':
         language = await loadLanguage('scala', sourceDirectory)
-        query = new Query(language, luaQuery) // Temporarily use Lua query until Scala is implemented
+        query = new Query(language, scalaQuery)
         break
       case 'sol':
         language = await loadLanguage('solidity', sourceDirectory)
