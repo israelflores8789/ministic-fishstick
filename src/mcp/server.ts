@@ -2,8 +2,6 @@ import { McpServer } from '@modelcontextprotocol/server'
 import { SearchToolInputSchema, handleSearchTool } from './tools/search'
 import { StartIndexingToolInputSchema, handleStartIndexingTool } from './tools/index'
 import { StatusToolInputSchema, handleStatusTool } from './tools/status'
-import { ClearToolInputSchema, handleClearTool } from './tools/clear'
-import { ConfigureToolInputSchema, handleConfigureTool } from './tools/configure'
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
@@ -36,24 +34,6 @@ export function createMcpServer(): McpServer {
       inputSchema: StatusToolInputSchema,
     },
     async (args) => handleStatusTool(args)
-  )
-
-  server.registerTool(
-    'code_index_clear',
-    {
-      description: 'Clear index database and local cache for a workspace',
-      inputSchema: ClearToolInputSchema,
-    },
-    async (args) => handleClearTool(args)
-  )
-
-  server.registerTool(
-    'code_index_configure',
-    {
-      description: 'Dynamically update embedding provider or vector store settings',
-      inputSchema: ConfigureToolInputSchema,
-    },
-    async (args) => handleConfigureTool(args)
   )
 
   return server
