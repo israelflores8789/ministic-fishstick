@@ -157,7 +157,7 @@ This is a short summary of the main codebase indexing MCP projects I considered,
 
 - [`vitali87/code-graph-rag`](https://github.com/vitali87/code-graph-rag): An ambitious graph-RAG system written in Python that translates natural language into Cypher via an LLM and requires Docker plus a Memgraph instance to run. It violated my criteria on heavy external dependencies (Memgraph/Docker), in-the-loop reasoning (LLM-mediated queries instead of deterministic tool calls), and I didn't care for its incremental indexing methodology that recomputes all call-graph edges on every file change rather than propagating only the diff.
 
-- [`websines/code-graphmcp`](https://github.com/websines/codegraph-mcp): An interesting indie project in Rust built by a self-proclaimed AI consultant. It uses tree-sitter for AST supporting Python, Go, Rust, and JavaScript/Typescript only, [`petgraph`](https://github.com/petgraph/petgraph) for graph data structuring, and sqlite for the DBMS. The repo's organization is very clean, and it has all the basic components of a well-structured pure graph-based indexer; however, the project fundamentally solves a different problem. It leverages graph-based indexing for structural search but combines it with persistent context memory. This was a novel approach to me; rather than combine an embeddings model with a vector store to offer an agent semantic search capabilities, `websines/codegraph-mcp` went the other direction by becoming a context sink. Unfortunately, I wasn't convinced of the project's querying method; I had concerns about context management; and it appeared that the project was more of a learning experience and portfolio-builder for the author. But, I included it because I liked how orthogonal its approach was compared to everything else I surveyed.
+- [`websines/codegraph-mcp`](https://github.com/websines/codegraph-mcp): An interesting indie project in Rust built by a self-proclaimed AI consultant. It uses tree-sitter for AST supporting Python, Go, Rust, and JavaScript/Typescript only, [`petgraph`](https://github.com/petgraph/petgraph) for graph data structuring, and sqlite for the DBMS. The repo's organization is very clean, and it has all the basic components of a well-structured pure graph-based indexer; however, the project fundamentally solves a different problem. It leverages graph-based indexing for structural search but combines it with persistent context memory. This was a novel approach to me; rather than combine an embeddings model with a vector store to offer an agent semantic search capabilities, `websines/codegraph-mcp` went the other direction by becoming a context sink. Unfortunately, I wasn't convinced of the project's querying method; I had concerns about context management; and it appeared that the project was more of a learning experience and portfolio-builder for the author. But, I included it because I liked how orthogonal its approach was compared to everything else I surveyed.
 
 ### Runner Up
 **[`DeusData/codebase-memory-mcp`](https://github.com/DeusData/codebase-memory-mcp)**
@@ -198,66 +198,136 @@ I *strongly* considered this project. It's based on academic research published 
 
 - **Incremental indexing with explicit care for edge cases.** The project employs BLAKE3 file hashing throughout instead of SHA-256, which I saw in most other projects. Index updates are represented as Merkle diffs, using dirty propagation that lazily marks downstream nodes. Re-indexing cost is proportional to the size of the edit leveraging $\mathcal{O}(k \cdot d)$ optimization, and the project even employs self-healing logic for SQLite corruption edge cases.
 
-- **Impressive audits and acknowledgements of design fragilities.** This was unique for the indie projects I reviewed and heavily modeled the scientific transparency the `DeusData/codebase-memory-mcp` project had. The audits were honest that there is a small TOCTOU (Time-of-Check to Time-of-Use) window when vectors are inserted, but mitigations such as existence checks and orphan handling are in place. There's also an index scanner blindness edge case where diffs that propogate within the same tick can be missed causing slight index lag. Given the transparency and the fact that these audits were performed with prompt intention from the author, I viewed these issues as planned improvements and neither were critical. 
+- **HTTP route tracing.** Given that I do spend time setting up cloud-based applications, this was a unique feature I didn't see in most of the other projects I surveyed.
+
+- **Impressive audits and acknowledgements of design fragilities.** This was unique for the indie projects I reviewed and heavily modeled the scientific transparency the `DeusData/codebase-memory-mcp` project had. The audits were honest that there is a small TOCTOU (Time-of-Check to Time-of-Use) window when vectors are inserted, but mitigations such as existence checks and orphan handling are in place. There's also an index scanner blindness edge case where diffs that propogate within the same tick can be missed causing slight index lag. Given the transparency and the fact that these audits were performed with prompt intention from the author, I viewed these issues as planned improvements and neither were critical. Like `DeusData/codebase-memory-mcp`, the scientific transparency earned my trust.
+
+- **Active development that addresses audit findings.** The project is currently receiving weekly attention from the author with significant updates. At the time of writing (17 Aug 2026), the project was updated to v0.120.1 from v0.117.0 four days prior and brought a CLI overhaul that now separates commands per module for maintainability, new drift guards when scanning the file tree, improved search result accuracy that reduces false positives, and new test suite hardening.s
 
 - **Solid code integrity.** Before considering adoption, I specifically evaluated the repo for security considerations. There is zero telemetry logic, TLS is enforced for HTTP requests, BLAKE3 checksums are computed for downloaded release artifacts including embedder model weights and sqlite, and there's even invalid input rejection logic.
 
-- **HTTP route tracing.** Given that I do spend time setting up cloud-based applications, this was a unique feature I didn't see in most of the other projects I surveyed. 
+For this candidate project, I'd likely offer contributions for opencode-specific integration initially. 
+add language-specific embedder support and potential toggle that and/or feature gating
 
 ### Implementing a Graph-Based Codebase Indexer (It's more than just installing an MCP)
-The biggest thing I learned throughout this process was how important each component of agentic development is. The harness itself, exemplified by my own experiences with Cline and Zoo Code, can amplify or degrade a given model's reasoning ability. Harness-level permissions, configuration, and middleware can distort a given model's contextual reality and permit deference to its trained bias or enforce desired reasoning character. Moreover, the design of an MCP and the number and quality of included tools can pollute model context or make it highly efficient. One should think about model context like the quality of an image. The more tools, the more MCPs, the more modifications applied to the context the more blury the image and the less resolution a given model "sees".
+The biggest thing I learned throughout this process was how important each component of agentic development is. The harness itself, exemplified by my own experiences with Cline and Zoo Code, can amplify or degrade a given model's reasoning ability. Harness-level permissions, configuration, and middleware can distort a given model's contextual reality and permit deference to its trained bias or enforce desired reasoning character. Moreover, the design of an MCP and the number and quality of included tools can pollute model context or make it highly efficient. One should think about model context like the quality of an image. The more tools, the more MCPs, the more modifications applied to the context, the blurrier the image, and the less resolution a given model "sees".
 
-My research yielded the following design considerations when configuring your own agentic software:
+My research yielded the following design considerations when configuring agentic software:
 
-- **Avoid tools that distort the context.** In my research, I also looked at tools that filter or compress raw command output before it reaches the model, like 
-[`rtk-ai/rtk`](https://github.com/rtk-ai/rtk), which advertises 60–90% token savings on shell output. On the surface, it seems like an incredible upgrade for the harness, but [JetBrains](https://blog.jetbrains.com/ai/2026/07/rtk-claude-code-token-savings/) ran a rigorous benchmark against it and discovered the opposite: a median +7.6% cost increase at low reasoning effort (p=0.004) and a flat +0.1% at high effort, never saving because most of what an agent reads bypassed the hook entirely. Two factors drive this issue. First, a writeup from [Abhishek Ray on Claude Code Camp](https://www.claudecodecamp.com/p/how-prompt-caching-actually-works-in-claude-code) highlights the consequences to cached context savings, stating, "*Adding one MCP tool changes the prefix, which invalidates the cache for the entire conversation history*". This directly applies to tools like `rtk-ai/rtk` which can dynamically change the structure of bash command outputs directly resulting in lost context cache cost savings. Second, aggressive command output compression can cause model confusion. Benchmarks show that when agents get confused by truncated outputs, output quality might not materially suffer but they run 20% to 30% more total commands. An [open GitHub issue](https://github.com/rtk-ai/rtk/issues/2104#issue-4524950354) on `rtk-ai/rtk` articulates this concern well:
+- **Avoid tools that distort the context.** In my research, I also looked at tools that filter or compress raw command output before it reaches the model, like [`rtk-ai/rtk`](https://github.com/rtk-ai/rtk), which advertises 60–90% token savings on shell output. On the surface, it seems like an incredible upgrade for the harness, but [JetBrains](https://blog.jetbrains.com/ai/2026/07/rtk-claude-code-token-savings/) ran a rigorous benchmark against it and discovered the opposite: a median +7.6% cost increase at low reasoning effort (p=0.004) and a flat +0.1% at high effort, never saving, because most of what an agent reads bypasses the hook entirely. Two factors drive this issue. First, a writeup from [Abhishek Ray on Claude Code Camp](https://www.claudecodecamp.com/p/how-prompt-caching-actually-works-in-claude-code) highlights the consequences to cached context savings, stating, "*Adding one MCP tool changes the prefix, which invalidates the cache for the entire conversation history*". This directly applies to tools like `rtk-ai/rtk` which can dynamically change the structure of bash command outputs, directly resulting in lost context cache cost savings. Second, aggressive command output compression can cause model confusion. Benchmarks show that when agents get confused by truncated outputs, output quality might not materially suffer but they run 20% to 30% more total commands. An [open GitHub issue](https://github.com/rtk-ai/rtk/issues/2104#issue-4524950354) on `rtk-ai/rtk` articulates this concern well:
   > "RTK's strategies (removing comments, whitespace, boilerplate; grouping similar items; truncating; deduplication) are well-designed for reducing noise. But noise and signal are context-dependent — what looks like 'boilerplate' to a filter might be the exact pattern the model needs to recognize for understanding a project's architecture. What gets truncated as 'redundancy' might contain the subtle details that differentiate one bug from another."
 
-  But, I would go further and claim that model training bias is also a fundamental factor here. Much of what `rtk-ai/rtk` does is dynamic, not deterministic, which means console outputs are not truncated the same way each call. Not only does this defeat the purpose of context caching on the hyperscalers end, but the model has a new layer of complexity to reason through *because the command output it sees doesn't match the command outputs it was trained to see*.
+  But, I would go further and propose that model training bias is also a fundamental factor here. Much of what `rtk-ai/rtk` does is dynamic, not deterministic, which means console outputs are not truncated the same way each call. Not only does this defeat the purpose of context caching on the hyperscalers end, but the model has a new layer of complexity to reason through *because the command output it sees doesn't match the command outputs it was trained to see*.
 
-  Consequently, I directly rejected tools like this in my research and instead preferred tools that offered determinism in the context they truncate. As the issuer on `rtk-ai/rtk`'s GitHub commented, "I don't think the answer is simply "more context = always better" — context window limits are real, and token costs matter. But the solution space between "raw dump everything" and "aggressively filter everything" is wide..." For me, I choose to answer this question with tools like graph-based indexing and semantic search enhancements rather than directly modify pertinent bash commands I allow the model to use (more in following points).
+  Consequently, I directly rejected tools like this in my research and instead preferred tools that offered determinism in the context they truncate. As the author of the issue on `rtk-ai/rtk`'s GitHub commented, 
+  > "I don't think the answer is simply 'more context = always better' — context window limits are real, and token costs matter. But the solution space between 'raw dump everything' and 'aggressively filter everything' is wide..." 
+  
+  For me, I chose to answer this question with tools like graph-based indexing and semantic search enhancements rather than directly modifying pertinent bash commands I allow the model to use (more in following points).
 
-- **Enforce desired agent behavior through configuration.** Passively suggesting to the model that it *should* use "better" tools for `grep` and read actions by just installing an MCP is *not* viable. In the published paper "[Is Grep All You Need? How Agent Harnesses Reshape Agentic Search](https://doi.org/10.48550/arXiv.2605.15184)", the authors discover 
-  > "*grep consistently yields higher accuracy than vector retrieval... for every harness-model pair we evaluate[d]. ...When you use a harness that is tuned towards programming (Codex and Claude Code), grep wins. When you use a neutral harness, vector search wins*".
+- **Enforce desired agent behavior through configuration.** Passively suggesting to the model that it *should* use "better" tools for `grep` and read actions by just installing an MCP is *not* viable. The `sdsrss/code-graph-mcp` project discovered this in its own audit history with *brutal* results. Over a week of real usage across 751 edits, 683 reads, and 472 greps, passively recommending the `sdsrss/code-graph-mcp` tools, even embedding hints directly in denial messages, measured a **0/40 transfer rate**. In other words, **no one**, not even `sdsrss`'s own coding agent, **ever** voluntarily reached for the MCP tool when `grep` was available. Presenting a well-designed, well-described tool changes absolutely nothing when the harness itself is biased toward `grep` at its reinforcement level.
 
-  The issue comes down to harness architectural design bias. Coding-specific harnesses (Claude Code, Codex, etc.) are specifically tuned to employ grep-centric workflows. The `sdsrss/code-graph-mcp` project discovered the same in its own audit history with *brutal* results. Over a week of real usage with against 751 edits, 683 reads, and 472 greps, passively recommending the `sdsrss/code-graph-mcp` tools, even embedding hints directly in denial messages, measured a **0/40 transfer rate**. In other words, **no one**, not even `sdsrss`'s own coding agent, **ever** voluntarily reached for the MCP tool when `grep` and read were available. Presenting a well-described, well-designed tool changes absolutely nothing when the harness itself is biased toward `grep` at the harness reinforcement level.
+  But even after enforcing the model to actually use the installed tools, harness architecture and search result delivery method are equally crucial. In the published paper "[Is Grep All You Need? How Agent Harnesses Reshape Agentic Search](https://doi.org/10.48550/arXiv.2605.15184)", the authors perform experiments on conversation text retrieval comparing lexical and semantic methods. What they discover, agnostic of their experiment medium, is harness architecture and the delivery method of the result matter more than the retrieval algorithm alone. One experiment found the *same model* scored 93.1% under one harness's inline delivery method but 55.2% under a different harness's file-based delivery method for identical retrieval algorithms. The Model Context Protocol is itself inline through stdio, but the authors' findings emphasize the importance of harness architecture and configuration.
 
   The solution has three components:
 
-  1. **The harness must be configured to prohibit certian Bash commands when alternatives are intentially available.** Using a less-biased harness like OpenCode or Pi is preferred, but not always convenient or desirable. In any case, it doesn't negate the need to explicitly prohibit certain commands at harness-level configuration, for example:
+  1. **The harness must be configured to prohibit certain Bash commands when alternatives are intentionally available.** Of course, using a less-biased, more reinforcement-configurable harness like OpenCode or Pi is preferred, but not always convenient or desirable. But agnostic of harness selection, it's crucial to explicitly prohibit certain commands at harness-level configuration, for example:
   ```json
   {
     "permission": {
       "bash": {
         "*": "allow",
-        "grep*": "deny",
+        "grep *": "deny",
         "rg *": "deny",
         "find * -name*": "deny",
+        "rm *" : "deny",
         "git *": "allow",
         "./scripts/*": "allow"
       },
-      "grep": "deny",
-      "glob": "deny"
+      "edit": "allow",
+      "webfetch": "deny"
     }
   }
   ```
 
-  2. **Desired model behavior should be concisely and declaratively described in AGENTS.md.** There's a really good blog post from earlier this year by [Blake Crosley](https://blakecrosley.com/blog/agents-md-patterns) that guides on how to properly structure and command agents in your `AGENTS.md` file. In the context of enforcing MCP usage
+  2. **Desired model behavior should be concisely and declaratively described in AGENTS.md.** There's a really good blog post from earlier this year by [Blake Crosley](https://blakecrosley.com/blog/agents-md-patterns) that guides on how to properly structure and command agents in your `AGENTS.md` file. Blake advocates for being declarative and command-oriented in `AGENTS.md`, saying:
+  > "*Most AGENTS.md problems come from writing human documentation instead of agent operations.* Effective files are command-first (exact invocations, not descriptions), task-organized (coding, review, release sections), and closure-defined (explicit 'done' criteria). Anti-patterns that reliably get ignored: prose paragraphs, ambiguous directives ('be careful'), and contradictory priorities."
+
+  In the context of enforcing agentic usage of an indexer MCP over command tools, an `AGENTS.md` might contain the following:
   ```markdown
-  ## 3. STRICT COMMAND PROHIBITIONS
-  You are PHYSICALLY BARRED from using the following Bash commands:
-  - [e.g., grep, glob, find, read, lake build]
-  Instead, you MUST use the corresponding MCP tools listed in Section 2.
+  ## STRICT COMMAND PROHIBITIONS
+  You are BARRED from using these Bash commands: `grep`, `rg`, `find`, `glob`.
+
+  When you need to locate a symbol, definition, or call site, invoke the MCP tool instead:
+  - Find a definition: `ast_search(symbol: string)`
+  - Find all callers: `find_references(symbol: string)`
+  - Search by concept/intent: `semantic_code_search(query: string)`
+
+  If a required MCP tool call fails or returns empty, retry once with a corrected argument.
   ```
 
-  3. **Modify the shell process directly to enforce prohibitions and redirect behavior.**
+  3. **Modify the shell process directly to enforce prohibitions and redirect behavior.** It is a documented phenomenon that sometimes the model can disobey the coercion of the harness and attempt to use prohibited command tools like `grep` anyway. The current hypothesis for this, which I also share, lies in model training bias. Sometimes the model can reason `grep` as a "path of least resistance" to get what it needs even though other tools are available and arguably better for the task. The solution is to hard disable prohibited tools like `grep` within the agent's execution process with feedback. The best method I've found is to use a shell script that spawns a process with the harness CLI that inherits command overrides, environment variables, and avoids `alias` in favor of `export` so configuration propagates to child processes. Here's an example script that targets OpenCode with `sdsrss/code-graph-mcp` installed and authenticates with GCP for Agent Platform models (formerly VertexAI):
   ```bash
-  # Example of a hard shell guardrail for the agent
-  alias grep="echo 'ERROR: grep is disabled. Use the sdsrss or Lean MCP search tools instead.'"
-  alias read="echo 'ERROR: read is disabled. Use mcp/lean_goal or code-graph tools.'"
+  #!/usr/bin/env bash
+  # my-harness-wrapper.sh
+  #
+  # Spawns the coding-agent harness (OpenCode, in this example) with
+  # Bash-level command overrides scoped to this process tree only.
+  # Overrides do not persist in the parent shell or in unrelated sessions.
+  #
+  # Usage:
+  #   ./my-harness-wrapper.sh [any args to pass through to the harness]
+  #
+  # Suggested alias for convenience (put in your interactive shell config):
+  #   alias oc-wrapper='/path/to/my-harness-wrapper.sh'
+
+  set -euo pipefail
+
+  grep() {
+    echo "ERROR: grep is disabled in this session. Use the code-graph-mcp search tools instead (e.g., ast_search)." >&2
+    return 1
+  }
+
+  rg() {
+    echo "ERROR: rg is disabled in this session. Use the code-graph-mcp search tools instead (e.g. ast_search)." >&2
+    return 1
+  }
+
+  find() {
+    echo "ERROR: find is disabled in this session. Use the code-graph-mcp ast_search tool instead." >&2
+    return 1
+  }
+
+  export -f grep
+  export -f rg
+  export -f find
+
+  # Environment/credentials for the harness process, scoped the same way
+  # as the overrides above -- adjust to your actual GCP/Vertex setup.
+  export GOOGLE_APPLICATION_CREDENTIALS="${GOOGLE_APPLICATION_CREDENTIALS:-/run/secrets/<your-sa-credential>.json}"
+  export GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT:-<your-project-id>}"
+  export GOOGLE_VERTEX_LOCATION="${GOOGLE_VERTEX_LOCATION:-global}"
+
+  # exec replaces this script's process with the harness, preserving the
+  # exported functions and env vars in the harness's process tree without
+  # leaving a lingering wrapper process behind.
+  exec opencode "$@"
   ```
 
-- **Minimalism and modularity yields performance.** Less is more, and not every token should fight for its context survival.
+  **Note:** This is a great way to coerce the model to use the desired MCP tools, but it's not foolproof. The model can still technically attempt to access prohibited bash commands through its absolute path.
+
+- **Minimalism and modularity yields performance.** Perhaps the most important concept to understand about agentic performance is every tool, every skill, and every word added to the `AGENTS.md` file *directly grows model context before a given user prompt is even reasoned*. This is crucial to digest. Minimalism isn't just a preference when it comes to designing code agents. **Context management** can be more crucial than engineering the prompt itself.
+
+  [Microsoft Research](https://www.microsoft.com/en-us/research/video/tool-space-interference-an-emerging-problem-for-llm-agents/) calls reasoning effort applied to MCP tool declarations and description context "Tool-Space Interference". Imagine model context like a commercial kitchen. The tool-space are all of the knives, pots, pans, peelers, etc. Consider the knives hanging on the wall. Imagine that there are 100 of them all of different shape, size, and form. You can agree that a paring knife is ideal for detailed tasks like trimming fat from meat or peeling a fruit, but a Japanese Santoku would be far more ideal for chopping vegetables. But among the 100+ knives on the wall, you can't readily make that assessment and neither can the model. Instead, anyone with that kind of overwhelm would reach for a standard chef's knife and ignore the rest of the tool options. Models do the same, or worse, become paralyzed.
+
+  [In their study of 1,470 MCP servers](https://www.microsoft.com/en-us/research/blog/tool-space-interference-in-the-mcp-era-designing-for-agent-compatibility-at-scale/), Microsoft found that tool-space interference issues manifested most heavily when MCP servers exposed too many tools but also in other areas like tool naming collisions and vague or lengthy tool descriptions. During research on LLM degradation of long-running workflow delegation that involved long-document editing, Microsoft Research, in the paper ["LLMs Corrupt Your Documents When You Delegate"](https://doi.org/10.48550/arXiv.2604.15597), discovered that adding a specific document read and editing tool degraded model performance by a marginal addition of 6%. The issue wasn't the inclusion of the tool so much as it was the additional tool-space inference overhead the tool addition required in an already heavy context. As the authors note, models "invoke 8-12 tools on average to complete a task," and their simulations with tools available consumed "2-5x more input tokens than the no-tool alternative."
+  
+  In ["Understanding LLM Performance Degradation in Multi-Instance Processing: The Roles of Instance Count and Context Length"](https://doi.org/10.48550/arXiv.2603.22608) the authors observe model performance degradation directly when context instances (of which MCP tool invocations could be considered a subset thereof) grew beyond 20. Performance collapsed when instance count exceeded 100. Research from Stanford and UC Berkeley may offer one explanation for this behavior. In their paper ["Lost in the Middle: How Language Models Use Long Contexts"](https://doi.org/10.48550/arXiv.2307.03172), the authors expose a very obvious U-shaped performance curve when LLMs were tasked with retrieving information from a given context. Their findings showed LLMs exhibit profound primacy and recency bias with performance peaking when retrieved information was located at the start or end of the context window. Models engineered with massive context windows were not immune to this phenomenon. Encoder-decoder models were more robust, but there was a limit when context length exceeded training sequence length causing the U-shaped performance curve reappeared.
+
+  Adding irrelevant tools and skills to an agent's tool-space is an equally severe culprit. In the paper ["The Tool-Overuse Illusion: Why Does LLM Prefer External Tools over Internal Knowledge?"](https://doi.org/10.48550/arXiv.2604.19749), the authors show that when irrelevant tools are offered to agents "the model hallucinates tool capabilities to compensate for [its own] reasoning gaps" yielding "no informational gain and further increases context burden." There are compounding $\mathcal{O}$ consequences to this because the act of invoking these irrelevant tools appends the result directly to the context stack. In the authors' experiments, frontier models were found to spuriously invoke irrelevant tools 19.8% of the time, rising to 37.5% for open-source models, when no tool is relevant to the query. There are profound accuracy consequences too as the authors observed, "enabling tool use leads to a 3.29-14.48% drop in accuracy on questions solvable using internal knowledge alone."
+
+  The solution is to be cognizant of context growth and integrity when designing an agent with MCP tools, a new skill, or lengthy instructions in the `AGENTS.md`. Agents should be modular and their tool-space purposeful. The team at [Microsoft Research](https://www.microsoft.com/en-us/research/blog/tool-space-interference-in-the-mcp-era-designing-for-agent-compatibility-at-scale/) recommends MCP servers to "expose as few tools as possible, have short tool responses, [with] unique and descriptive tool names," and they built [`microsoft/mcp-interviewer`](https://github.com/microsoft/mcp-interviewer/) to help guide MCP quality. OpenAI recommends *at most* 20 tools per agent, and both [Cursor](https://cursor.com/blog/dynamic-context-discovery) and [Anthropic](https://www.anthropic.com/engineering/advanced-tool-use) are implementing *dynamic tool relevance* in their harnesses, injecting the 3 to 5 most relevant tools into the active system prompt often achieving a 10% maximum impact to the target context window.
+  
+  Remember, **context is not free** and agents don't "draw from" context passively. Context is a scarce, ordered, and finite budget that every tool declaration, every skill, and every instruction spends before a prompt is even considered. A codebase-indexing MCP that exposes a dozen narrowly-scoped, deterministic tools with tight, unambiguous descriptions is far more performant than a "kitchen-sink" approach with numerous, general-purpose, similarly named tools included expecting the model will simply select the best tool for a given query. Ultimately, it was the driving intuition that made me step away from Zoo Code; and the given the research, it was a defining principle that ruled out several of the candidate projects I considered. I rejected many projects not because they were poorly built but because *tool breadth and generality are not free*, and every capability bundled into an agent's tool-space is a withdrawal against the same limited account.
 
 personal note: leave a comment on the repo
 
